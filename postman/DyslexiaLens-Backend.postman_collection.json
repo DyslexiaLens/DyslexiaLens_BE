@@ -1,0 +1,1085 @@
+{
+  "info": {
+    "name": "DyslexiaLens Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01. API Flow",
+      "item": [
+        {
+          "name": "01. System",
+          "item": [
+            {
+              "name": "Health",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_url}}/health"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Health status is healthy', function () {",
+                      "  const json = pm.response.json();",
+                      "  pm.expect(json.success).to.eql(true);",
+                      "  pm.expect(json.data.status).to.eql('healthy');",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "02. Auth",
+          "item": [
+            {
+              "name": "Register",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"Demo User\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/register"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201 or 409', function () {",
+                      "  pm.expect([201, 409]).to.include(pm.response.code);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/login"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Token exists', function () {",
+                      "  const json = pm.response.json();",
+                      "  pm.expect(json.data.accessToken).to.be.a('string').and.not.empty;",
+                      "  pm.environment.set('access_token', json.data.accessToken);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Forgot Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/forgot-password"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('OTP stored when available', function () {",
+                      "  const json = pm.response.json();",
+                      "  if (json.data && json.data.otpCode) pm.environment.set('otp_code', json.data.otpCode);",
+                      "  pm.expect(json.success).to.eql(true);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Verify OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"{{otp_code}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/verify-otp"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Reset Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"{{otp_code}}\",\n  \"newPassword\": \"{{password}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/reset-password"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Change Password",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"{{password}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/change-password"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Me",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/auth/me"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/auth/logout"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "03. Profile",
+          "item": [
+            {
+              "name": "Get Profile",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/profile"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Profile",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"Demo User Updated\",\n  \"phone\": \"08123456789\"\n}"
+                },
+                "url": "{{base_url}}/profile"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Address",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"street\": \"Jl. Mawar 1\",\n  \"city\": \"Bandung\",\n  \"province\": \"Jawa Barat\",\n  \"postalCode\": \"40123\",\n  \"country\": \"Indonesia\"\n}"
+                },
+                "url": "{{base_url}}/profile/address"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "04. AI",
+          "item": [
+            {
+              "name": "Predict Dyslexia",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "image", "type": "file", "src": "d:/Homework/Dicoding/DBS Coding Camp/Capstone/back-end/postman/sample-image.svg" }
+                  ]
+                },
+                "url": "{{base_url}}/analysis/predict"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "  pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test('Stores history id when available', function () {",
+                      "  const json = pm.response.json();",
+                      "  if (json.data && json.data.history && json.data.history.id) {",
+                      "    pm.environment.set('history_id', String(json.data.history.id));",
+                      "  }",
+                      "  pm.expect(json.success).to.eql(true);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Translate Dyslexia Text",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "image", "type": "file", "src": "d:/Homework/Dicoding/DBS Coding Camp/Capstone/back-end/postman/sample-image.svg" }
+                  ]
+                },
+                "url": "{{base_url}}/analysis/translate"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "  pm.response.to.have.status(201);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Upload File",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "image", "type": "file", "src": "d:/Homework/Dicoding/DBS Coding Camp/Capstone/back-end/postman/sample-image.svg" }
+                  ]
+                },
+                "url": "{{base_url}}/uploads"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "  pm.response.to.have.status(201);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "05. History",
+          "item": [
+            {
+              "name": "List History",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/history"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Histories array exists', function () {",
+                      "  const json = pm.response.json();",
+                      "  pm.expect(json.data).to.have.property('histories');",
+                      "  pm.expect(json.data.histories).to.be.an('array');",
+                      "  if (json.data.histories.length > 0) {",
+                      "    pm.environment.set('history_id', String(json.data.histories[0].id));",
+                      "  }",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "History Detail",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/history/{{history_id}}"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200 or 404', function () {",
+                      "  pm.expect([200, 404]).to.include(pm.response.code);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "History Delete",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/history/{{history_id}}"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200 or 404', function () {",
+                      "  pm.expect([200, 404]).to.include(pm.response.code);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Detection History List",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/histories/detections"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Translation History List",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/histories/translations"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. Negative Tests",
+      "item": [
+        {
+          "name": "01. Auth - Login",
+          "item": [
+            {
+              "name": "Case 1 - Empty email and password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}"
+                },
+                "url": "{{base_url}}/auth/login"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "  pm.response.to.have.status(400);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Case 2 - Password min 6",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"12345\"\n}"
+                },
+                "url": "{{base_url}}/auth/login"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "  pm.response.to.have.status(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Case 3 - Connection error",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+                },
+                "url": "{{bad_base_url}}/auth/login"
+              }
+            },
+            {
+              "name": "Case 4 - Email not registered",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"not.registered@example.com\",\n  \"password\": \"Password123\"\n}"
+                },
+                "url": "{{base_url}}/auth/login"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "  pm.response.to.have.status(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Case 5 - Attempts left and lock after 3 attempts",
+              "description": "Run the same invalid login request three times. The current backend returns 401; lockout behavior is documented for future implementation.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"not.registered@example.com\",\n  \"password\": \"wrongpassword\"\n}"
+                },
+                "url": "{{base_url}}/auth/login"
+              }
+            }
+          ]
+        },
+        {
+          "name": "02. Auth - Register",
+          "item": [
+            {
+              "name": "Case 6 - Email exists",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"Demo User\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/register"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201 or 409', function () {",
+                      "  pm.expect([201, 409]).to.include(pm.response.code);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Case 7 - Name min 3 and max 50",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"Al\",\n  \"email\": \"newuser-min@example.com\",\n  \"password\": \"Password123\"\n}"
+                },
+                "url": "{{base_url}}/auth/register"
+              }
+            },
+            {
+              "name": "Case 8 - Name only number",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"123456\",\n  \"email\": \"newuser-number@example.com\",\n  \"password\": \"Password123\"\n}"
+                },
+                "url": "{{base_url}}/auth/register"
+              }
+            },
+            {
+              "name": "Case 9 - Name invalid characters",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"Demo@User#!\",\n  \"email\": \"newuser-invalid@example.com\",\n  \"password\": \"Password123\"\n}"
+                },
+                "url": "{{base_url}}/auth/register"
+              }
+            }
+          ]
+        },
+        {
+          "name": "03. Auth - Forgot Password",
+          "item": [
+            {
+              "name": "Case 10 - Network error",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\"\n}"
+                },
+                "url": "{{bad_base_url}}/auth/forgot-password"
+              }
+            },
+            {
+              "name": "Case 11 - Server error",
+              "description": "Manual case: force backend 500 to validate server error handling.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\"\n}"
+                },
+                "url": "{{base_url}}/auth/forgot-password"
+              }
+            },
+            {
+              "name": "Case 12 - OTP network error",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"123456\"\n}"
+                },
+                "url": "{{bad_base_url}}/auth/verify-otp"
+              }
+            },
+            {
+              "name": "Case 13 - OTP server error",
+              "description": "Manual case: force backend 500 to validate OTP server handling.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"123456\"\n}"
+                },
+                "url": "{{base_url}}/auth/verify-otp"
+              }
+            },
+            {
+              "name": "Case 14 - Invalid OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"000000\"\n}"
+                },
+                "url": "{{base_url}}/auth/verify-otp"
+              }
+            }
+          ]
+        },
+        {
+          "name": "04. Auth - Reset Password",
+          "item": [
+            {
+              "name": "Case 15 - Network error",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"123456\",\n  \"newPassword\": \"Password123\"\n}"
+                },
+                "url": "{{bad_base_url}}/auth/reset-password"
+              }
+            },
+            {
+              "name": "Case 16 - Server error",
+              "description": "Manual case: force backend 500 to validate server error handling.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"123456\",\n  \"newPassword\": \"Password123\"\n}"
+                },
+                "url": "{{base_url}}/auth/reset-password"
+              }
+            },
+            {
+              "name": "Case 17 - Empty password confirmation",
+              "description": "Frontend validation case: confirmation is handled in UI, not by the API.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"123456\",\n  \"newPassword\": \"\"\n}"
+                },
+                "url": "{{base_url}}/auth/reset-password"
+              }
+            },
+            {
+              "name": "Case 18 - Password mismatch",
+              "description": "Frontend validation case: confirm password mismatch is handled in UI.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"otpCode\": \"123456\",\n  \"newPassword\": \"Password123\"\n}"
+                },
+                "url": "{{base_url}}/auth/reset-password"
+              }
+            }
+          ]
+        },
+        {
+          "name": "05. AI - Upload",
+          "item": [
+            {
+              "name": "Case 19 - Invalid format",
+              "description": "Select a non-image file manually before sending.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": "{{base_url}}/analysis/predict"
+              }
+            },
+            {
+              "name": "Case 20 - File too large",
+              "description": "Select an image larger than 5 MB manually before sending.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": "{{base_url}}/analysis/predict"
+              }
+            },
+            {
+              "name": "Case 21 - Network error",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": "{{bad_base_url}}/analysis/predict"
+              }
+            },
+            {
+              "name": "Case 22 - Server error",
+              "description": "Manual case: force backend 500 to validate server error handling.",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": "{{base_url}}/analysis/predict"
+              }
+            }
+          ]
+        },
+        {
+          "name": "06. Profile",
+          "item": [
+            {
+              "name": "Case 29 - Edit personal info empty fields",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"\",\n  \"phone\": \"\",\n  \"birthDate\": \"\",\n  \"avatarUrl\": \"\"\n}"
+                },
+                "url": "{{base_url}}/profile"
+              }
+            },
+            {
+              "name": "Case 30 - Edit address empty fields",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"street\": \"\",\n  \"city\": \"\",\n  \"province\": \"\",\n  \"postalCode\": \"\",\n  \"country\": \"\"\n}"
+                },
+                "url": "{{base_url}}/profile/address"
+              }
+            },
+            {
+              "name": "Case 31 - Change password empty fields",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"\",\n  \"newPassword\": \"\"\n}"
+                },
+                "url": "{{base_url}}/auth/change-password"
+              }
+            },
+            {
+              "name": "Negative - Unauthorized access",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer invalid-token" }
+                ],
+                "url": "{{base_url}}/profile"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "  pm.response.to.have.status(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Negative - Missing token",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_url}}/profile"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "  pm.response.to.have.status(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "07. Result - Frontend Notes",
+          "description": "Cases 23-28 are frontend/UI-only: export PDF, save history, load failed, network, server, and empty state. Keep them as UI test cases outside Postman requests.",
+          "item": []
+        }
+      ]
+    }
+  ]
+}
