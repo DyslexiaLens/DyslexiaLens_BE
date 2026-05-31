@@ -2,13 +2,10 @@ import {
   createDetectionHistory,
   createTranslationHistory,
 } from "../models/historyModel.js";
-import {
-  mockAnalyzeDyslexia,
-  mockTranslateHandwriting,
-} from "./mockAiService.js";
+import { analyzeDyslexia, translateHandwriting } from "./realAiService.js";
 
 export const detectDyslexia = async ({ userId, filePath }) => {
-  const result = await mockAnalyzeDyslexia(filePath);
+  const result = await analyzeDyslexia(filePath);
   const history = await createDetectionHistory({
     userId,
     imageUrl: filePath,
@@ -25,7 +22,7 @@ export const detectDyslexia = async ({ userId, filePath }) => {
 };
 
 export const translateImageText = async ({ userId, filePath }) => {
-  const result = await mockTranslateHandwriting(filePath);
+  const result = await translateHandwriting(filePath);
   const history = await createTranslationHistory({
     userId,
     imageUrl: filePath,

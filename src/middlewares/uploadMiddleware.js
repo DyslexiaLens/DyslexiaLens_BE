@@ -1,11 +1,15 @@
 import path from "path";
+import { mkdirSync } from "fs";
 import multer from "multer";
 import { env } from "../config/env.js";
 import { HttpError } from "../utils/httpError.js";
 
+const uploadDir = "uploads/";
+mkdirSync(uploadDir, { recursive: true });
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, "uploads/");
+    cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);

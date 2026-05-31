@@ -18,4 +18,7 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   otpExpiresMinutes: Number(process.env.OTP_EXPIRES_MINUTES || 10),
   maxFileSizeMb: Number(process.env.MAX_FILE_SIZE_MB || 5),
+  aiModelBaseUrl: process.env.AI_MODEL_BASE_URL || "http://localhost:7860",
+  aiModelApiKey: process.env.AI_MODEL_API_KEY || "KunciRahasia123!",
+  aiModelTimeoutMs: Number(process.env.AI_MODEL_TIMEOUT_MS || 30000),
 };
