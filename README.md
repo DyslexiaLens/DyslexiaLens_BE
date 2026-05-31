@@ -1,516 +1,267 @@
 # DyslexiaLens Backend
 
-Backend API untuk fitur autentikasi, profil pengguna, upload gambar, mock AI dyslexia detection/translation, dan history.
+DyslexiaLens Backend adalah sebuah RESTful API yang dirancang untuk mendukung aplikasi **DyslexiaLens** dalam membantu deteksi pola disleksia dan penerjemahan dokumen tulisan tangan disleksia menjadi teks normal yang mudah dibaca menggunakan teknologi kecerdasan buatan (AI).
 
-## Stack
+Backend ini menyediakan layanan manajemen pengguna (autentikasi dan profil), penyimpanan riwayat analisis secara terintegrasi, manajemen unggah berkas gambar secara aman, serta jembatan penghubung langsung ke model kecerdasan buatan.
 
-- Node.js + Express.js
-- PostgreSQL (`pg`)
-- JWT auth (`jsonwebtoken`)
-- Password hash (`bcrypt`)
-- Upload image (`multer`)
-- Validation (`express-validator`)
-- Environment config (`dotenv`)
-- Linting (`eslint`)
+---
 
-## Struktur Folder
+## Tech Stack Utama
 
-- `src/config`: konfigurasi env dan koneksi database.
-- `src/routes`: definisi endpoint RESTful.
-- `src/controllers`: handler HTTP.
-- `src/services`: business logic (mudah ganti mock AI ke AI asli).
-- `src/middlewares`: auth JWT, upload middleware, error handler.
-- `src/validators`: validasi request.
-- `src/models`: query SQL ke PostgreSQL.
-- `src/utils`: helper umum.
-- `migrations`: SQL schema.
-- `postman`: collection + environment untuk testing API.
+- **Runtime & Framework:** Node.js (ES Modules) + Express.js
+- **Database:** PostgreSQL (menggunakan driver native `pg` pool)
+- **Autentikasi:** JSON Web Token (JWT) via `jsonwebtoken`
+- **Keamanan Kredensial:** Password Hashing via `bcrypt`
+- **Unggah Gambar:** `multer` (penyimpanan lokal di `/uploads` dengan validasi ukuran dan MIME type)
+- **Validasi Data:** Robust Request Validation via `express-validator`
+- **Environment Management:** `dotenv`
+- **Pemeriksa Kualitas Kode:** `eslint` (Flat configuration)
+- **Testing:** Postman Collection + Newman CLI
 
-## Setup
+---
 
-1. Install dependency:
+## Struktur Proyek (Folder Structure)
 
-```bash
-npm install
+```
+back-end/
+├── migrations/                   # Berkas migrasi database SQL (.sql)
+├── postman/                      # Postman Collection & Environment JSON
+├── src/                          # Kode sumber utama aplikasi
+│   ├── app.js                    # Inisialisasi Express & pemasangan middleware
+│   ├── server.js                 # Bootstrap server & pengikatan port
+│   ├── config/                   # Berkas konfigurasi env & koneksi database
+│   │   ├── database.js           # Pengaturan pg pool connection
+│   │   ├── env.js                # Pembacaan & validasi variabel lingkungan (.env)
+│   │   └── migrate.js            # Mekanisme otomatisasi migrasi database SQL
+│   ├── controllers/              # Handler request HTTP (Lapisan Presentation)
+│   ├── middlewares/              # Middleware global (auth, upload, error handler)
+│   ├── models/                   # Logika query mentah SQL ke PostgreSQL (Lapisan Data)
+│   ├── routes/                   # Definisi jalur & routing RESTful API
+│   ├── services/                 # Logika bisnis inti aplikasi (Lapisan Service)
+│   │   ├── aiService.js          # Titik masuk orkestrasi deteksi & translasi
+│   │   ├── authService.js        # Logika registrasi, login, OTP & ubah password
+│   │   ├── historyService.js     # Manajemen riwayat per-pengguna
+│   │   ├── mockAiService.js      # Mock fallback AI service untuk development lokal
+│   │   ├── profileService.js     # Manajemen informasi profil & alamat
+│   │   └── realAiService.js      # Layanan integrasi nyata ke model AI disleksia
+│   ├── utils/                    # Helper modular & utilitas umum
+│   └── validators/               # Chain validator skema input express-validator
+├── uploads/                      # Direktori penyimpanan berkas gambar lokal (git-ignored)
+├── .env                          # Pengaturan variabel lingkungan aktif (git-ignored)
+├── .env.example                  # Contoh acuan penulisan berkas .env
+├── .gitignore                    # Berkas pengecualian Git
+├── eslint.config.js              # Flat Config konfigurasi ESLint kualitas kode
+├── package.json                  # Ketergantungan dependensi proyek & NPM Scripts
+├── README.md                     # Dokumentasi panduan umum proyek
+└── SETUP.md                      # Panduan mendalam penyiapan lokal & troubleshoot
 ```
 
-2. Copy env:
+---
 
-```bash
-cp .env.example .env
+## Panduan Setup Singkat
+
+Untuk rincian setup yang lebih lengkap, silakan merujuk pada berkas [SETUP.md](file:///d:/Homework/Dicoding/DBS%20Coding%20Camp/Capstone/back-end/SETUP.md).
+
+1. **Unduh Dependensi:**
+   ```bash
+   npm install
+   ```
+2. **Duplikasi Konfigurasi:**
+   ```bash
+   cp .env.example .env
+   ```
+   *Sesuaikan kredensial PostgreSQL dan konfigurasi SMTP Mailer Anda di dalam berkas `.env`.*
+3. **Jalankan Migrasi Database:**
+   ```bash
+   npm run migrate
+   ```
+4. **Jalankan Server dalam Mode Pengembangan:**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## Integrasi Layanan AI Riil (Real AI Engine)
+
+Aplikasi backend ini telah **sepenuhnya terintegrasi** dengan mesin kecerdasan buatan riil melalui berkas `src/services/realAiService.js`.
+
+### Mekanisme Kerja
+1. Pengguna mengunggah gambar tulisan tangan via multipart form-data.
+2. Backend membaca gambar tersebut dari sistem penyimpanan lokal (`uploads/`).
+3. Gambar diubah menjadi representasi string Base64.
+4. Backend mengirimkan request HTTP POST menuju endpoint `/predict-sheet` pada server model AI yang ditentukan melalui variabel lingkungan `AI_MODEL_BASE_URL`, lengkap dengan pengamanan header API Key (`X-API-Key`) menggunakan `AI_MODEL_API_KEY`.
+5. Respons hasil dari model AI dipetakan secara terstruktur:
+   - **Fitur Deteksi Disleksia (`analyzeDyslexia`):** Mengembalikan label klasifikasi (`resultLabel`, seperti `LIKELY_DYSLEXIA_PATTERN`), probabilitas tingkat keyakinan (`confidence`), skor keparahan (`severityScore`), tingkat keparahan (`severityLevel`), beserta transkrip teks mentah hasil prediksi (`predictedText`).
+   - **Fitur Translasi Korektif (`translateHandwriting`):** Mengembalikan pembacaan tulisan tangan OCR (`sourceText`), hasil koreksi teks normal (`translatedText`), serta penanda bahasa (`sourceLanguage: "handwriting"`, `targetLanguage: "text"`).
+6. Hasil tersebut otomatis tersimpan ke dalam database PostgreSQL sebagai rekaman riwayat terenskripsi JSONB dan dikembalikan ke pengguna.
+
+> [!TIP]
+> Jika Anda ingin bekerja secara offline atau tanpa koneksi ke server model AI Hugging Face, Anda dapat mengubah kembali import layanan AI di `src/services/aiService.js` untuk mengarah ke `mockAiService.js` yang akan menyimulasikan respons model secara instan.
+
+---
+
+## Struktur Database Skema (PostgreSQL)
+
+Berikut adalah relasi dan kolom dari kelima tabel utama yang diinisialisasi melalui migrasi SQL:
+
+```mermaid
+erDiagram
+    users ||--o| user_addresses : "has one"
+    users ||--o{ password_reset_otps : "requests"
+    users ||--o{ detection_histories : "has"
+    users ||--o{ translation_histories : "has"
+
+    users {
+        bigint id PK
+        varchar full_name
+        varchar email UK
+        text password_hash
+        varchar phone
+        date birth_date
+        text avatar_url
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    user_addresses {
+        bigint id PK
+        bigint user_id FK, UK
+        text street
+        varchar city
+        varchar province
+        varchar postal_code
+        varchar country
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    password_reset_otps {
+        bigint id PK
+        bigint user_id FK
+        varchar otp_code
+        timestamp expires_at
+        boolean is_used
+        timestamp created_at
+    }
+
+    detection_histories {
+        bigint id PK
+        bigint user_id FK
+        text image_url
+        text predicted_text
+        numeric confidence
+        varchar result_label
+        jsonb raw_response
+        timestamp created_at
+    }
+
+    translation_histories {
+        bigint id PK
+        bigint user_id FK
+        text image_url
+        text source_text
+        text translated_text
+        varchar source_language
+        varchar target_language
+        jsonb raw_response
+        timestamp created_at
+    }
 ```
 
-3. Buat database PostgreSQL lalu jalankan migration:
+### Catatan Penting Mengenai Skema Alamat (`user_addresses`)
+Mengingat frontend saat ini hanya mengirimkan field alamat esensial yaitu `country`, `city`, dan `postalCode`, proses penyimpanan melalui model `upsertUserAddress` akan otomatis memasok nilai string kosong `""` ke kolom `street` dan `province` di database demi kelancaran integritas data tanpa merusak struktur migrasi awal.
 
-```bash
-npm run migrate
+---
+
+## Format Respons API
+
+Konsistensi data respons adalah prioritas utama untuk mencegah eror parsing di frontend.
+
+### 1. Respons Sukses Registrasi Akun Baru (201 Created)
+```json
+{
+  "success": true,
+  "message": "Register success",
+  "data": {
+    "id": 12,
+    "fullName": "Ahmad Dani",
+    "email": "ahmad@gmail.com",
+    "createdAt": "2026-06-01T04:47:34.000Z"
+  }
+}
 ```
 
-4. Jalankan server:
-
-```bash
-npm run dev
-```
-
-## Endpoint Utama
-
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/forgot-password`
-- `POST /api/v1/auth/verify-otp`
-- `POST /api/v1/auth/reset-password`
-- `GET /api/v1/auth/me`
-- `POST /api/v1/auth/logout`
-- `PATCH /api/v1/auth/change-password`
-- `GET /api/v1/profile`
-- `PATCH /api/v1/profile`
-- `PATCH /api/v1/profile/address`
-- `POST /api/v1/analysis/predict` (multipart, field file: `image`)
-- `POST /api/v1/analysis/translate` (multipart, field file: `image`)
-- `POST /api/v1/uploads` (multipart, field file: `image`)
-- `GET /api/v1/histories/detections`
-- `GET /api/v1/histories/translations`
-- `GET /api/v1/history`
-- `GET /api/v1/history/:id`
-- `GET /api/v1/histories/:type/:id`
-- `DELETE /api/v1/histories/:type/:id`
-- `GET /api/v1/health`
-
-## Format Response
-
-Sukses:
-
+### 2. Respons Sukses Login & Token JWT (200 OK)
 ```json
 {
   "success": true,
   "message": "Login success",
   "data": {
-    "accessToken": "...",
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI...",
     "user": {
-      "id": 1,
-      "fullName": "User",
-      "email": "user@mail.com"
+      "id": 12,
+      "fullName": "Ahmad Dani",
+      "email": "ahmad@gmail.com",
+      "createdAt": "2026-06-01T04:47:34.000Z"
     }
   }
 }
 ```
 
-Error:
-
+### 3. Respons Gagal Validasi Input (400 Bad Request)
 ```json
 {
   "success": false,
   "message": "Validation error",
   "errors": [
     {
-      "msg": "email must be valid",
-      "path": "email"
+      "type": "field",
+      "value": "123",
+      "msg": "password min length is 8",
+      "path": "password",
+      "location": "body"
     }
   ]
 }
 ```
 
-## Postman Testing
-
-- Import collection: `postman/DyslexiaLens-Backend.postman_collection.json`
-- Import environment: `postman/DyslexiaLens-Local.postman_environment.json`
-- Jalankan dari folder paling atas ke bawah: System → Auth → Profile → AI → History → Negative Tests.
-- Semua request sudah ada di dalam folder, tidak ada item root.
-- Collection test otomatis simpan `access_token`, `otp_code`, dan `history_id`.
-- Upload tests memakai file sample di `postman/sample-image.svg`.
-
-## Catatan Mock AI
-
-- Implementasi mock AI ada di `src/services/mockAiService.js`.
-- Saat model AI asli tersedia, cukup ganti isi service ini tanpa ubah controller/route utama.
-
 ---
 
-## Dokumentasi Lengkap
+## Pengujian Berbasis Postman & Newman
 
-### Fitur Utama Backend
+Seluruh endpoint backend telah tercover oleh automated test suite yang tersimpan di dalam folder `postman/`.
 
-**Auth & Akun**
+- **Collection File:** `postman/DyslexiaLens-Backend.postman_collection.json`
+- **Environment File:** `postman/DyslexiaLens-Local.postman_environment.json`
 
-- Register dengan validasi email + password min 8 char
-- Login generate JWT token (default 7 hari expiry)
-- Forgot password + OTP (config: 10 menit expiry)
-- Verify OTP + Reset password
-- Change password (auth required)
-- Mode development: OTP ditampilkan di response untuk QA
-- Get current user via `/auth/me`
-- Logout via `/auth/logout`
-
-**Profile & Alamat**
-
-- Get profile lengkap (auth required)
-- Update profile partial (fullName, phone, birthDate, avatarUrl)
-- Upsert address per user (one-to-one)
-
-**AI Upload & Deteksi Disleksia**
-
-- Upload image deteksi dyslexia (multipart): disimpan ke `/uploads`
-- Upload image deteksi dyslexia via `/analysis/predict` atau `/ai/detections`
-- Upload image translate OCR handwriting via `/analysis/translate` atau `/ai/translations`
-- Upload file langsung via `/uploads`
-- Mock AI di `src/services/mockAiService.js` untuk development
-- Hasil simpan otomatis ke tabel `detection_histories` dan `translation_histories`
-
-**History Management**
-
-- Get detection histories (user-scoped, order by created_at DESC)
-- Get translation histories (user-scoped, order by created_at DESC)
-- Get all histories via `/history`
-- Get detail history by type + id
-- Delete history (hard delete current, dapat dijadikan soft delete)
-
-### Error Handling & Response Format
-
-Backend menangani semua error secara terpusat via middleware errorHandler:
-
-| Error Case             | HTTP | Message                  | Details                           |
-| ---------------------- | ---- | ------------------------ | --------------------------------- |
-| Validasi gagal         | 400  | Validation error         | Array of validation errors        |
-| Auth header invalid    | 401  | Unauthorized             | -                                 |
-| Token expired/invalid  | 401  | Invalid or expired token | -                                 |
-| Email sudah terdaftar  | 409  | Data already exists      | from PostgreSQL unique constraint |
-| Resource not found     | 404  | Route/Resource not found | null                              |
-| File upload salah tipe | 400  | Only image files allowed | null                              |
-| File size >limit       | 413  | Payload Too Large        | null                              |
-| Database error         | 500  | Internal server error    | mapped from DB error code         |
-
-Response format konsisten:
-
-```json
-{
-  "success": false,
-  "message": "Human-readable message",
-  "errors": null atau [{ msg: "...", path: "fieldName" }]
-}
-```
-
-### Struktur Database (PostgreSQL 18)
-
-**users** table
-
-```sql
-id BIGSERIAL PRIMARY KEY
-full_name VARCHAR(120) NOT NULL
-email VARCHAR(120) UNIQUE NOT NULL
-password_hash TEXT NOT NULL
-phone VARCHAR(30)
-birth_date DATE
-avatar_url TEXT
-created_at TIMESTAMP DEFAULT NOW()
-updated_at TIMESTAMP DEFAULT NOW()
-```
-
-**user_addresses** table (one-to-one)
-
-```sql
-id BIGSERIAL PRIMARY KEY
-user_id BIGINT UNIQUE NOT NULL (FK → users)
-street TEXT NOT NULL
-city VARCHAR(100) NOT NULL
-province VARCHAR(100) NOT NULL
-postal_code VARCHAR(20) NOT NULL
-country VARCHAR(100) NOT NULL
-created_at TIMESTAMP DEFAULT NOW()
-updated_at TIMESTAMP DEFAULT NOW()
-```
-
-**password_reset_otps** table
-
-```sql
-id BIGSERIAL PRIMARY KEY
-user_id BIGINT NOT NULL (FK → users)
-otp_code VARCHAR(6) NOT NULL
-expires_at TIMESTAMP NOT NULL
-is_used BOOLEAN DEFAULT FALSE
-created_at TIMESTAMP DEFAULT NOW()
-INDEX: idx_password_reset_otps_user_id (user_id)
-```
-
-**detection_histories** table
-
-```sql
-id BIGSERIAL PRIMARY KEY
-user_id BIGINT NOT NULL (FK → users)
-image_url TEXT NOT NULL
-predicted_text TEXT
-confidence NUMERIC(5,2)
-result_label VARCHAR(100)
-raw_response JSONB
-created_at TIMESTAMP DEFAULT NOW()
-INDEX: idx_detection_histories_user_id (user_id)
-```
-
-**translation_histories** table
-
-```sql
-id BIGSERIAL PRIMARY KEY
-user_id BIGINT NOT NULL (FK → users)
-image_url TEXT NOT NULL
-source_text TEXT
-translated_text TEXT
-source_language VARCHAR(20)
-target_language VARCHAR(20)
-raw_response JSONB
-created_at TIMESTAMP DEFAULT NOW()
-INDEX: idx_translation_histories_user_id (user_id)
-```
-
-### Validasi Request & Constraints
-
-**Auth Validator**
-
-- fullName: required, non-empty trim string
-- email: required, valid email format
-- password: required, min 8 characters
-- currentPassword: required for change-password
-- newPassword: required, min 8 characters
-- otpCode: exactly 6 digits
-
-**Profile Validator**
-
-- fullName: optional, non-empty string
-- phone: optional, string format
-- birthDate: optional, ISO8601 date format
-- avatarUrl: optional, string format
-
-**Address Validator**
-
-- street, city, province, postalCode, country: all required, non-empty strings
-
-**Upload Validator**
-
-- file: required, MIME type must be `image/*`
-- size: max 5 MB (configurable via `.env` MAX_FILE_SIZE_MB)
-
-### JWT Authentication Flow
-
-1. User melakukan register/login → server generate JWT token berisi `{ userId, email, iat, exp }`
-2. Client kirim token di header: `Authorization: Bearer <accessToken>`
-3. Middleware `authMiddleware.js` verify signature dan expiry
-4. Jika valid: `req.user` didatangi dengan payload JWT
-5. Jika invalid/expired: respond 401 Unauthorized
-
-Token default expiry: 7 hari (configurable: `JWT_EXPIRES_IN` di .env)
-
-### Mock AI Service
-
-File: `src/services/mockAiService.js`
-
-**Function: mockAnalyzeDyslexia(filePath)**
-
-```javascript
-{
-  imagePath: "uploads/xxx.jpg",
-  predictedText: "Ths is smple txt wth dyslxic ptrn" atau "This is normal text",
-  confidence: 0.60 - 0.95 (random),
-  resultLabel: "LIKELY_DYSLEXIA_PATTERN" atau "NORMAL_PATTERN",
-  notes: "Mock AI response..."
-}
-```
-
-**Function: mockTranslateHandwriting(filePath)**
-
-```javascript
-{
-  imagePath: "uploads/xxx.jpg",
-  sourceText: "Ths is hndwrttn sentence",
-  translatedText: "This is handwritten sentence",
-  sourceLanguage: "id",
-  targetLanguage: "en",
-  notes: "Mock AI response..."
-}
-```
-
-**Cara replace dengan AI asli:**
-
-1. Buat file baru: `src/services/realAiService.js` dengan signature function yang sama
-2. Update `src/services/aiService.js`: ganti import dari mockAiService → realAiService
-3. Controller dan route tidak perlu diubah (interface-based design)
-4. Test minimal untuk memastikan signature output tetap kompatibel
-
-### Deployment Checklist
-
-**Before Deploy to Production:**
-
-- [ ] Tambahkan konfigurasi SMTP untuk OTP email (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`)
-
-**Development vs Production:**
-| Setting | Dev | Prod |
-|---------|-----|------|
-| NODE_ENV | development | production |
-| OTP di response | ✓ (visible) | ✗ (hidden) |
-| Morgan log | dev (colored) | combined (file) |
-| CORS | \* (allow all) | https://domain.frontend.com (specific) |
-| Error detail | full stack | generic message only |
-| Health endpoint | ✓ | ✓ |
-
-**Skala & Optimasi (Future Roadmap):**
-
-- Add Redis untuk caching profile, OTP verification
-- Pagination ke list histories endpoint
-- Rate limiting middleware (express-rate-limit)
-- Centralized logging (Winston/Bunyan → file/log service)
-- Connection pool optimization (PgBouncer)
-- Database read replica untuk analytics
-- CDN upload file ke S3/GCS
-- Refresh token + token revocation list
-
-### Contoh Integrasi Frontend (Axios)
-
-```javascript
-import axios from "axios";
-
-const BASE_URL = "http://localhost:5000/api/v1";
-const client = axios.create({ baseURL: BASE_URL });
-
-// 1. Register
-const register = async (fullName, email, password) => {
-  const res = await client.post("/auth/register", {
-    fullName,
-    email,
-    password,
-  });
-  return res.data.data;
-};
-
-// 2. Login
-const login = async (email, password) => {
-  const res = await client.post("/auth/login", { email, password });
-  const token = res.data.data.accessToken;
-  client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  localStorage.setItem("token", token);
-  return res.data.data;
-};
-
-// 3. Get Profile
-const getProfile = async () => {
-  const res = await client.get("/profile");
-  return res.data.data;
-};
-
-// 4. Upload Detection Image
-const uploadDetectionImage = async (imageFile) => {
-  const formData = new FormData();
-  formData.append("image", imageFile);
-  const res = await client.post("/ai/detections", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data.data;
-};
-
-// 5. Get Histories
-const getDetectionHistories = async () => {
-  const res = await client.get("/histories/detections");
-  return res.data.data;
-};
-
-// Setup interceptor untuk auto-add token
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-```
-
-### Folder Structure Penjelasan
-
-```
-back-end/
-├── src/
-│   ├── app.js                    # Express app + middleware setup
-│   ├── server.js                 # Bootstrap + listen port
-│   ├── config/
-│   │   ├── env.js                # Env var validation & export
-│   │   ├── database.js           # PostgreSQL pool init
-│   │   └── migrate.js            # Run SQL migrations
-│   ├── routes/
-│   │   ├── index.js              # Main router + health check
-│   │   ├── authRoutes.js         # POST /auth/* endpoints
-│   │   ├── profileRoutes.js      # GET/PATCH /profile endpoints
-│   │   ├── aiRoutes.js           # POST /ai/detections, /ai/translations
-│   │   └── historyRoutes.js      # GET/DELETE /histories
-│   ├── controllers/              # HTTP request handlers
-│   ├── services/                 # Business logic + model operations
-│   ├── models/                   # Raw SQL query functions
-│   ├── middlewares/              # Global middleware (auth, error, upload)
-│   ├── validators/               # express-validator rules
-│   └── utils/                    # Helper utilities
-├── migrations/                   # SQL migration files
-├── postman/                      # Postman collection + env
-├── uploads/                      # Uploaded files (git-ignored)
-├── .env                          # Environment variables (git-ignored)
-├── .env.example                  # Template (.env)
-├── .gitignore
-├── eslint.config.js              # ESLint configuration (flat config)
-├── package.json
-└── README.md
-```
-
-### NPM Scripts Reference
+### Cara Menjalankan Tes Secara Otomatis
+Anda dapat menggunakan Newman CLI untuk mengeksekusi tes langsung melalui terminal:
 
 ```bash
-npm run dev           # Start with nodemon (auto-reload on change)
-npm run start         # Start production server
-npm run migrate       # Execute SQL migrations
-npm run lint          # Check code quality
-npm run lint:fix      # Auto-fix linting issues
+# Pastikan newman terpasang secara global
+npm install -g newman
+
+# Jalankan suite pengujian
+newman run postman/DyslexiaLens-Backend.postman_collection.json -e postman/DyslexiaLens-Local.postman_environment.json
 ```
 
-### Key Design Decisions
-
-- **Service Layer**: Business logic terpisah dari controller, memudahkan testing & debugging
-- **Direct SQL**: Menggunakan `pg` pool langsung bukan ORM, untuk kontrol penuh dan performance
-- **Custom Error Class**: Consistent HTTP error format via `HttpError` class
-- **Async Handler**: Wrapper untuk catch unhandled promise rejection otomatis
-- **Express Validator**: Chain validation, parsed ke `req.body`, execute di middleware
-- **Multer Upload**: File disimpan lokal ke `/uploads`, path tersimpan ke database
-- **JWT Token**: Claim sederhana (userId, email), dapat diperluas sesuai kebutuhan
-
-### Notes untuk Next Phase
-
-- [ ] Implementasi refresh token + access token rotation
-- [ ] Add soft delete column ke histories table
-- [ ] Implement image optimization & resize (sharp)
-- [ ] Add file upload ke cloud storage (S3/GCS)
-- [ ] Implement OTP via email (SendGrid/Resend)
-- [ ] Add role-based access control (admin, user)
-- [ ] Add subscription/quota per user
-- [ ] Implement analytics endpoint
-- [ ] Add API documentation (Swagger/OpenAPI)
-- [ ] Add unit/integration test coverage
-
-### Support & Troubleshooting
-
-**Server tidak start:**
-
-- Check `.env` ada `JWT_SECRET`
-- Check `DATABASE_URL` valid PostgreSQL connection string
-- Check port 5000 sudah tidak dipakai aplikasi lain
-
-**Migration gagal:**
-
-- Check PostgreSQL server running
-- Check credential di `DATABASE_URL` benar
-- Check database sudah dibuat: `createdb dyslexialens`
-
-**Upload endpoint error:**
-
-- Check folder `uploads/` ada dan writable permission
-- Check file size < `MAX_FILE_SIZE_MB` di .env
-- Check MIME type `image/*`
-
-**JWT token error:**
-
-- Check header format: `Authorization: Bearer <token>`
-- Check token belum expired
-- Check `JWT_SECRET` di backend sama saat generate token
+> [!NOTE]
+> Koleksi uji diatur dalam folder berurutan dari atas ke bawah: `System` -> `Auth` -> `Profile` -> `AI` -> `History` -> `Negative Tests`. Pastikan untuk mengimpor berkas environment lokal agar parameter token JWT dan OTP dapat di-chain secara otomatis antar request.
 
 ---
 
-**Version:** DyslexiaLens Backend v1.0.0  
-**Last Updated:** May 16, 2026
+## NPM Scripts Reference
+
+Berikut adalah perintah singkat yang dapat Anda jalankan menggunakan npm:
+
+- `npm run dev` : Memulai server lokal dengan hot-reload memanfaatkan `nodemon`.
+- `npm run start` : Menjalankan server aplikasi pada mode produksi.
+- `npm run migrate` : Mengeksekusi migrasi tabel dan indeks SQL ke PostgreSQL.
+- `npm run lint` : Melakukan pemindaian kualitas kode menggunakan ESLint.
+- `npm run lint:fix` : Menganalisis sekaligus memperbaiki error/warning ESLint secara otomatis.
+
+---
+
+**Version:** DyslexiaLens Backend v1.1.0  
+**Last Updated:** June 1, 2026
