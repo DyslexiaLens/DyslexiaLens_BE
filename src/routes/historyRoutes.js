@@ -8,6 +8,29 @@ const router = Router();
 
 router.use(authenticate);
 
+/**
+ * @swagger
+ * /history:
+ *   get:
+ *     tags:
+ *       - History
+ *     summary: Get all history (detections and translations combined)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Combined histories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get("/", historyController.getAllHistories);
 
 /**
@@ -44,8 +67,80 @@ router.get("/detections", historyController.getDetectionHistories);
  */
 router.get("/translations", historyController.getTranslationHistories);
 
+/**
+ * @swagger
+ * /history/{id}:
+ *   get:
+ *     tags:
+ *       - History
+ *     summary: Get universal history detail by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Universal history record ID
+ *     responses:
+ *       200:
+ *         description: Universal history detail retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       404:
+ *         description: History record not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get("/:id", historyController.getHistoryDetailByAnyId);
 
+/**
+ * @swagger
+ * /history/{id}:
+ *   delete:
+ *     tags:
+ *       - History
+ *     summary: Delete universal history record by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Universal history record ID to delete
+ *     responses:
+ *       200:
+ *         description: Universal history record deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       404:
+ *         description: History record not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.delete("/:id", historyController.deleteHistoryByAnyId);
 
 /**

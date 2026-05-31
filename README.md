@@ -228,6 +228,31 @@ Konsistensi data respons adalah prioritas utama untuk mencegah eror parsing di f
 
 ---
 
+## Dokumentasi API Interaktif (Swagger UI)
+
+Proyek ini telah dilengkapi dengan dokumentasi API interaktif menggunakan **Swagger UI** (`swagger-ui-express` & `swagger-jsdoc`). Ini memudahkan Anda melihat seluruh daftar endpoint, parameter, skema data, serta menguji API secara langsung dari browser.
+
+### Cara Mengakses Swagger UI
+1. Jalankan server lokal dalam mode pengembangan:
+   ```bash
+   npm run dev
+   ```
+2. Buka browser Anda dan kunjungi:
+   ```http
+   http://localhost:5000/api-docs
+   ```
+
+### Fitur Utama di Swagger UI:
+- **Try it out:** Anda dapat menguji setiap endpoint (termasuk unggah berkas biner di `/uploads` dan pemrosesan AI) langsung dari halaman web Swagger.
+- **Bearer Authentication:** Untuk menguji endpoint terproteksi yang membutuhkan autentikasi:
+  1. Klik tombol **Authorize** (ikon gembok) di pojok kanan atas.
+  2. Masukkan JWT token Anda.
+  3. Klik **Authorize**, lalu **Close**.
+- **Persist Authorization:** Autentikasi token tetap tersimpan di browser meskipun halaman web di-refresh.
+- **Skema & Responses Akurat:** Menampilkan struktur data request body dan respons sukses/error untuk setiap rute sesuai dengan `API_CONTRACT.md`.
+
+---
+
 ## Pengujian Berbasis Postman & Newman
 
 Seluruh endpoint backend telah tercover oleh automated test suite yang tersimpan di dalam folder `postman/`.

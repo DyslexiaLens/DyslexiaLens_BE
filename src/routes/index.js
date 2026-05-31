@@ -25,6 +25,47 @@ router.get("/health", (_req, res) =>
   sendSuccess(res, { status: "healthy" }, "API healthy"),
 );
 
+/**
+ * @swagger
+ * /uploads:
+ *   post:
+ *     tags:
+ *       - System
+ *     summary: Upload an image file
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *             required:
+ *               - image
+ *     responses:
+ *       201:
+ *         description: Image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Validation or file upload error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post("/uploads", authenticate, uploadImage, (req, res) => {
   if (!req.file) {
     throw new HttpError(400, "Image file is required");
