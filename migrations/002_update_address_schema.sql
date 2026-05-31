@@ -1,0 +1,3 @@
+ALTER TABLE user_addresses
+  ALTER COLUMN street DROP NOT NULL,
+  ALTER COLUMN province DROP NOT NULL;

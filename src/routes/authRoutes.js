@@ -10,6 +10,7 @@ import {
 } from "../validators/authValidator.js";
 import { handleValidationResult } from "../validators/validationResult.js";
 import { authenticate } from "../middlewares/authMiddleware.js";
+import { sendOtpEmail } from "../utils/sendEmail.js";
 
 const router = Router();
 
@@ -206,6 +207,27 @@ router.post(
 
 /**
  * @swagger
+ * /auth/change-password/otp:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Request OTP for changing password (authenticated)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.post(
+  "/change-password/otp",
+  authenticate,
+  authController.requestChangePasswordOtp,
+);
+
+/**
+ * @swagger
  * /auth/change-password:
  *   patch:
  *     tags:
@@ -223,17 +245,21 @@ router.post(
  *               currentPassword:
  *                 type: string
  *                 example: Password123
+ *               otpCode:
+ *                 type: string
+ *                 example: "123456"
  *               newPassword:
  *                 type: string
  *                 example: NewPassword123
  *             required:
  *               - currentPassword
+ *               - otpCode
  *               - newPassword
  *     responses:
  *       200:
  *         description: Password changed successfully
  *       400:
- *         description: Current password incorrect or validation error
+ *         description: Current password incorrect, invalid OTP, or validation error
  *       401:
  *         description: Unauthorized
  */
@@ -245,4 +271,33 @@ router.patch(
   authController.changePassword,
 );
 
+router.post("/test-email", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email parameter is required in the request body",
+      });
+    }
+
+    await sendOtpEmail({
+      to: email,
+      otp: "123456",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Email berhasil dikirim",
+    });
+  } catch (error) {
+    console.error("EMAIL ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 export { router as authRoutes };

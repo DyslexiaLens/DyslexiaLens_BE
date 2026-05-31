@@ -83,22 +83,16 @@ router.patch(
  *           schema:
  *             type: object
  *             properties:
- *               street:
+ *               country:
  *                 type: string
  *               city:
  *                 type: string
- *               province:
- *                 type: string
  *               postalCode:
  *                 type: string
- *               country:
- *                 type: string
  *             required:
- *               - street
- *               - city
- *               - province
- *               - postalCode
  *               - country
+ *               - city
+ *               - postalCode
  *     responses:
  *       200:
  *         description: Address updated successfully

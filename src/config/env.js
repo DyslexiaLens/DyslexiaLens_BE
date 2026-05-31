@@ -2,7 +2,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const requiredEnvs = ["JWT_SECRET"];
+const requiredEnvs = [
+  "JWT_SECRET",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "SMTP_FROM",
+];
 
 requiredEnvs.forEach((key) => {
   if (!process.env[key]) {
@@ -17,6 +24,11 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   otpExpiresMinutes: Number(process.env.OTP_EXPIRES_MINUTES || 10),
+  smtpHost: process.env.SMTP_HOST || "",
+  smtpPort: Number(process.env.SMTP_PORT || 587),
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPass: process.env.SMTP_PASS || "",
+  mailFrom: process.env.SMTP_FROM || "",
   maxFileSizeMb: Number(process.env.MAX_FILE_SIZE_MB || 5),
   aiModelBaseUrl: process.env.AI_MODEL_BASE_URL || "http://localhost:7860",
   aiModelApiKey: process.env.AI_MODEL_API_KEY || "KunciRahasia123!",

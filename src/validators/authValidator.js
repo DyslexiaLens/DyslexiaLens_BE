@@ -18,6 +18,7 @@ export const forgotPasswordValidator = [
 export const verifyOtpValidator = [
   body("email").isEmail().withMessage("email must be valid"),
   body("otpCode")
+    .customSanitizer((val) => (val !== undefined && val !== null ? String(val) : ""))
     .isLength({ min: 6, max: 6 })
     .withMessage("otpCode must be 6 digits"),
 ];
@@ -25,6 +26,7 @@ export const verifyOtpValidator = [
 export const resetPasswordValidator = [
   body("email").isEmail().withMessage("email must be valid"),
   body("otpCode")
+    .customSanitizer((val) => (val !== undefined && val !== null ? String(val) : ""))
     .isLength({ min: 6, max: 6 })
     .withMessage("otpCode must be 6 digits"),
   body("newPassword")
@@ -34,6 +36,11 @@ export const resetPasswordValidator = [
 
 export const changePasswordValidator = [
   body("currentPassword").notEmpty().withMessage("currentPassword is required"),
+  body("otpCode")
+    .optional({ checkFalsy: true })
+    .customSanitizer((val) => (val !== undefined && val !== null ? String(val) : ""))
+    .isLength({ min: 6, max: 6 })
+    .withMessage("otpCode must be 6 digits"),
   body("newPassword")
     .isLength({ min: 8 })
     .withMessage("newPassword min length is 8"),

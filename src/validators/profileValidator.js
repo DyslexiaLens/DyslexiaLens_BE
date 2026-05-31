@@ -19,12 +19,10 @@ export const updateProfileValidator = [
 ];
 
 export const updateAddressValidator = [
-  body("street").isString().notEmpty().withMessage("street is required"),
+  body("country").isString().notEmpty().withMessage("country is required"),
   body("city").isString().notEmpty().withMessage("city is required"),
-  body("province").isString().notEmpty().withMessage("province is required"),
   body("postalCode")
     .isString()
     .notEmpty()
     .withMessage("postalCode is required"),
-  body("country").isString().notEmpty().withMessage("country is required"),
 ];

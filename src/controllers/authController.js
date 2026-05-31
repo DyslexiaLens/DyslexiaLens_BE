@@ -15,6 +15,7 @@ export const login = asyncHandler(async (req, res) => {
 
 export const forgotPassword = asyncHandler(async (req, res) => {
   const result = await authService.forgotPassword(req.body);
+  
   return sendSuccess(res, result, result.message);
 });
 
@@ -33,8 +34,14 @@ export const changePassword = asyncHandler(async (req, res) => {
     userId: req.user.userId,
     currentPassword: req.body.currentPassword,
     newPassword: req.body.newPassword,
+    otpCode: req.body.otpCode,
   });
-  return sendSuccess(res, result, "Password changed");
+  return sendSuccess(res, result, result.message || "Password changed");
+});
+
+export const requestChangePasswordOtp = asyncHandler(async (req, res) => {
+  const result = await authService.requestChangePasswordOtp(req.user.userId);
+  return sendSuccess(res, result, "OTP sent successfully");
 });
 
 export const getMe = asyncHandler(async (req, res) => {

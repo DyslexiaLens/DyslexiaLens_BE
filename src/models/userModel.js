@@ -20,8 +20,8 @@ export const findUserByEmail = async (email) => {
 
 export const findUserById = async (userId) => {
   const sql = `
-    SELECT u.id, u.full_name, u.email, u.phone, u.birth_date, u.avatar_url,
-           a.street, a.city, a.province, a.postal_code, a.country
+    SELECT u.id, u.full_name, u.email, u.phone, u.birth_date, u.avatar_url, u.created_at,
+           a.city, a.postal_code, a.country
     FROM users u
     LEFT JOIN user_addresses a ON a.user_id = u.id
     WHERE u.id = $1
@@ -73,18 +73,16 @@ export const upsertUserAddress = async (userId, payload) => {
     VALUES ($1, $2, $3, $4, $5, $6)
     ON CONFLICT (user_id)
     DO UPDATE SET
-      street = EXCLUDED.street,
       city = EXCLUDED.city,
-      province = EXCLUDED.province,
       postal_code = EXCLUDED.postal_code,
       country = EXCLUDED.country,
       updated_at = NOW();
   `;
   await query(sql, [
     userId,
-    payload.street,
+    "",
     payload.city,
-    payload.province,
+    "",
     payload.postalCode,
     payload.country,
   ]);

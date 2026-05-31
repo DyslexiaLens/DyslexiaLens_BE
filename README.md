@@ -337,12 +337,7 @@ File: `src/services/mockAiService.js`
 
 **Before Deploy to Production:**
 
-- [ ] Ubah `NODE_ENV=production` di `.env`
-- [ ] Ganti `JWT_SECRET` ke string random kuat (32+ char). Contoh: `openssl rand -hex 32`
-- [ ] Database URL pointing ke PostgreSQL production (cek credential, host, port, database name)
-- [ ] `npm run lint` hasilnya clean (0 errors)
-- [ ] `npm run migrate` berhasil tanpa error
-- [ ] Test endpoint sampling: health, register (new user), login (retrieve token), get profile, update profile
+- [ ] Tambahkan konfigurasi SMTP untuk OTP email (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`)
 
 **Development vs Production:**
 | Setting | Dev | Prod |

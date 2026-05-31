@@ -1,4 +1,5 @@
 import { env } from "../config/env.js";
+import { sendOtpEmail } from "../utils/sendEmail.js";
 import {
   createPasswordResetOtp,
   findLatestOtpByUserId,
@@ -71,6 +72,11 @@ export const forgotPassword = async ({ email }) => {
     expiresAt,
   });
 
+  await sendOtpEmail({
+    to: user.email,
+    otp: otpCode,
+  });
+
   return {
     message: "If email is registered, OTP has been sent",
     otpCode: env.nodeEnv === "development" ? otpCode : undefined,
@@ -121,6 +127,7 @@ export const changePassword = async ({
   userId,
   currentPassword,
   newPassword,
+  otpCode,
 }) => {
   const userById = await findUserById(userId);
   if (!userById) {
@@ -134,8 +141,68 @@ export const changePassword = async ({
     throw new HttpError(400, "Current password is incorrect");
   }
 
+  // Jika otpCode tidak dikirim, berarti ini Langkah 1 (Inisiasi Ubah Password & Kirim OTP)
+  if (!otpCode) {
+    const generatedOtp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + env.otpExpiresMinutes * 60 * 1000);
+
+    await createPasswordResetOtp({
+      userId: userById.id,
+      otpCode: generatedOtp,
+      expiresAt,
+    });
+
+    await sendOtpEmail({
+      to: userById.email,
+      otp: generatedOtp,
+    });
+
+    return {
+      requiresOtp: true,
+      message: "OTP has been sent to your email",
+      otpCode: env.nodeEnv === "development" ? generatedOtp : undefined,
+    };
+  }
+
+  // Jika otpCode dikirim, berarti ini Langkah 2 (Verifikasi OTP & Update Password)
+  const latestOtp = await findLatestOtpByUserId(userId);
+  if (!latestOtp || latestOtp.is_used || latestOtp.otp_code !== otpCode) {
+    throw new HttpError(400, "OTP invalid or already used");
+  }
+
+  if (new Date(latestOtp.expires_at) < new Date()) {
+    throw new HttpError(400, "OTP expired");
+  }
+
   const passwordHash = await hashPassword(newPassword);
   await updateUserPasswordById(userId, passwordHash);
+  await markOtpAsUsed(latestOtp.id);
 
   return { changed: true };
+};
+
+export const requestChangePasswordOtp = async (userId) => {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  const otpCode = generateOtpCode();
+  const expiresAt = new Date(Date.now() + env.otpExpiresMinutes * 60 * 1000);
+
+  await createPasswordResetOtp({
+    userId: user.id,
+    otpCode,
+    expiresAt,
+  });
+
+  await sendOtpEmail({
+    to: user.email,
+    otp: otpCode,
+  });
+
+  return {
+    message: "OTP has been sent to your email",
+    otpCode: env.nodeEnv === "development" ? otpCode : undefined,
+  };
 };
