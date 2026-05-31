@@ -17,6 +17,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
 
+app.get("/", (_req, res) =>
+  sendSuccess(
+    res,
+    {
+      name: "DyslexiaLens Backend API",
+      status: "healthy",
+      docs: "/api-docs",
+      health: "/health",
+      apiHealth: "/api/v1/health",
+      basePath: "/api/v1",
+    },
+    "DyslexiaLens Backend API is running",
+  ),
+);
+
 app.use(
   "/api-docs",
   swaggerUi.serve,
