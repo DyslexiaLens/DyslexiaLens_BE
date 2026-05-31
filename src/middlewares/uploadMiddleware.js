@@ -4,7 +4,7 @@ import multer from "multer";
 import { env } from "../config/env.js";
 import { HttpError } from "../utils/httpError.js";
 
-const uploadDir = "uploads/";
+const uploadDir = process.env.VERCEL ? "/tmp/uploads/" : "uploads/";
 mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({

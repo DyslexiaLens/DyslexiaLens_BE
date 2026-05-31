@@ -31,3 +31,5 @@ app.use("/api/v1", router);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+export default app;
