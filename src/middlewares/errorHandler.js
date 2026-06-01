@@ -15,6 +15,9 @@ export const notFoundHandler = (_req, _res, next) => {
 };
 
 export const errorHandler = (error, _req, res, _next) => {
+  // Log the full error to the terminal for debugging
+  console.error("Unhandled API Error:", error);
+
   if (error?.code && multerErrorMap[error.code]) {
     const mapped = multerErrorMap[error.code];
     return res.status(mapped.statusCode).json({

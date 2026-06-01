@@ -11,9 +11,28 @@ import { sendSuccess } from "./utils/response.js";
 export const app = express();
 
 app.use(helmet());
+const allowedOrigins = env.frontendUrl
+  ? env.frontendUrl.split(",").map((url) => url.trim())
+  : [];
+
 app.use(
   cors({
-    origin: env.frontendUrl,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, postman, curl)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
     optionsSuccessStatus: 200,
   }),

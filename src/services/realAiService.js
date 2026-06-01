@@ -1,15 +1,18 @@
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { env } from "../config/env.js";
 import { HttpError } from "../utils/httpError.js";
 
-const getModelUrl = (path) =>
-  new URL(path, env.aiModelBaseUrl.endsWith("/")
+const getModelUrl = (p) =>
+  new URL(p, env.aiModelBaseUrl.endsWith("/")
     ? env.aiModelBaseUrl
     : `${env.aiModelBaseUrl}/`);
 
 const readImageBase64 = async (filePath) => {
   const imageBuffer = await readFile(filePath);
-  return imageBuffer.toString("base64");
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeType = ext === ".png" ? "image/png" : ext === ".gif" ? "image/gif" : "image/jpeg";
+  return `data:${mimeType};base64,${imageBuffer.toString("base64")}`;
 };
 
 const PRACTICE_WORDS = [
@@ -116,7 +119,7 @@ export const translateHandwriting = async (filePath) => {
 };
 
 export const analyzeDyslexia = async (filePath) => {
-  const modelResponse = await requestModel("https://dyslexialens-dyslexialens-dicoding-ai.hf.space/api/v1/dyslexia/predict", {
+  const modelResponse = await requestModel("/api/v1/dyslexia/predict", {
     image_base64: await readImageBase64(filePath),
   });
 
