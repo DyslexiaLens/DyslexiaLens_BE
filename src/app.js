@@ -14,13 +14,9 @@ export const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || origin === env.frontendUrl) {
-        return callback(null, true);
-      }
-
-      return callback(null, false);
-    },
+    origin: env.frontendUrl,
+    credentials: true,
+    optionsSuccessStatus: 200,
   }),
 );
 app.use(express.json());
