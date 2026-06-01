@@ -172,7 +172,7 @@ npm run lint
 - [ ] Ganti `JWT_SECRET` dengan string random (32+ chars)
 - [ ] Update `DATABASE_URL` ke DB production
 - [ ] Set `NODE_ENV=production`
-- [ ] Konfigurasi CORS ke domain frontend
+- [x] Konfigurasi CORS ke domain frontend
 - [ ] Tambahkan rate limiting (opsional)
 - [ ] Setup logging (opsional)
 
