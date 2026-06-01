@@ -1,17 +1,25 @@
 import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 
-const transporter = nodemailer.createTransport({
-  host: env.smtpHost,
-  port: env.smtpPort,
-  secure: false,
-  auth: {
-    user: env.smtpUser,
-    pass: env.smtpPass,
-  },
-});
+const getTransporter = () => {
+  if (!env.smtpHost || !env.smtpUser || !env.smtpPass || !env.mailFrom) {
+    throw new Error("SMTP environment variables are not configured");
+  }
+
+  return nodemailer.createTransport({
+    host: env.smtpHost,
+    port: env.smtpPort,
+    secure: false,
+    auth: {
+      user: env.smtpUser,
+      pass: env.smtpPass,
+    },
+  });
+};
 
 export const sendOtpEmail = async ({ to, otp }) => {
+  const transporter = getTransporter();
+
   await transporter.sendMail({
     from: `"DyslexiaLens" <${env.mailFrom}>`,
     to,
