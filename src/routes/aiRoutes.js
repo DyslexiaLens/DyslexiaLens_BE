@@ -70,5 +70,6 @@ router.post("/predict", uploadImage, aiController.uploadDetectionImage);
  */
 router.post("/translations", uploadImage, aiController.uploadTranslationImage);
 router.post("/translate", uploadImage, aiController.uploadTranslationImage);
+router.post("/generate-text", aiController.generateText);
 
 export { router as aiRoutes };

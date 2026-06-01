@@ -90,10 +90,11 @@ Aplikasi backend ini telah **sepenuhnya terintegrasi** dengan mesin kecerdasan b
 1. Pengguna mengunggah gambar tulisan tangan via multipart form-data.
 2. Backend membaca gambar tersebut dari sistem penyimpanan lokal (`uploads/`).
 3. Gambar diubah menjadi representasi string Base64.
-4. Backend mengirimkan request HTTP POST menuju endpoint `/predict-sheet` pada server model AI yang ditentukan melalui variabel lingkungan `AI_MODEL_BASE_URL`, lengkap dengan pengamanan header API Key (`X-API-Key`) menggunakan `AI_MODEL_API_KEY`.
+4. Backend mengirimkan request HTTP POST menuju endpoint `https://dyslexialens-dyslexialens-dicoding-ai.hf.space/api/v1/dyslexia/predict` untuk deteksi disleksia, `/api/v1/ocr/predict` untuk ekstraksi teks, dan `/api/v1/ai/generate-text` untuk pembuatan teks latihan pada server model AI yang ditentukan melalui variabel lingkungan `AI_MODEL_BASE_URL`, lengkap dengan pengamanan header API Key (`X-API-Key`) menggunakan `AI_MODEL_API_KEY`.
 5. Respons hasil dari model AI dipetakan secara terstruktur:
    - **Fitur Deteksi Disleksia (`analyzeDyslexia`):** Mengembalikan label klasifikasi (`resultLabel`, seperti `LIKELY_DYSLEXIA_PATTERN`), probabilitas tingkat keyakinan (`confidence`), skor keparahan (`severityScore`), tingkat keparahan (`severityLevel`), beserta transkrip teks mentah hasil prediksi (`predictedText`).
-   - **Fitur Translasi Korektif (`translateHandwriting`):** Mengembalikan pembacaan tulisan tangan OCR (`sourceText`), hasil koreksi teks normal (`translatedText`), serta penanda bahasa (`sourceLanguage: "handwriting"`, `targetLanguage: "text"`).
+  - **Fitur Translasi Korektif (`translateHandwriting`):** Mengembalikan pembacaan tulisan tangan OCR (`sourceText`), hasil normalisasi teks (`translatedText`), total baris terdeteksi (`totalRowsDetected`), serta penanda bahasa (`sourceLanguage: "handwriting"`, `targetLanguage: "text"`).
+  - **Fitur Generasi Teks Latihan (`generatePracticeSentence`):** Mengembalikan kalimat latihan (`sentence`), jumlah kata, batas huruf per kata, bahasa, dan model yang dipakai.
 6. Hasil tersebut otomatis tersimpan ke dalam database PostgreSQL sebagai rekaman riwayat terenskripsi JSONB dan dikembalikan ke pengguna.
 
 > [!TIP]

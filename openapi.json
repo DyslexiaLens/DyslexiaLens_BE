@@ -1,0 +1,423 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "DyslexiaLens AI API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/dyslexia/predict": {
+      "post": {
+        "tags": [
+          "DyslexiaLens"
+        ],
+        "summary": "Classify a handwriting sheet for dyslexia indicators",
+        "operationId": "predict_api_v1_dyslexia_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DyslexiaPredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DyslexiaPredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ocr/predict": {
+      "post": {
+        "tags": [
+          "EMNIST OCR"
+        ],
+        "summary": "Extract uppercase handwritten letters from a ruled/grid form image",
+        "description": "Detects individual letter cells in a grid-ruled paper image using morphological line detection, classifies each cell as an uppercase letter (A-Z), and returns the extracted text together with the total number of detected rows.",
+        "operationId": "predict_grid_api_v1_ocr_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OcrGridPredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrGridPredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ai/generate-text": {
+      "post": {
+        "tags": [
+          "Generative AI"
+        ],
+        "summary": "Generate a handwriting practice sentence via Gemini",
+        "description": "Generate a clean practice sentence with:\n- Configurable language (Indonesian / English)\n- Configurable word count\n- Configurable max letters per word\n- No punctuation",
+        "operationId": "generate_text_api_v1_ai_generate_text_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateTextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health",
+        "operationId": "health__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DyslexiaPredictRequest": {
+        "properties": {
+          "image_base64": {
+            "type": "string",
+            "title": "Image Base64",
+            "description": "Base64-encoded image (with or without data URI prefix)"
+          },
+          "features": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Features",
+            "description": "Optional pre-computed features. Pass a dict keyed by feature name, a list of 6 floats in canonical order, or omit to auto-extract from the image."
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_base64"
+        ],
+        "title": "DyslexiaPredictRequest"
+      },
+      "DyslexiaPredictResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "result_text": {
+            "type": "string",
+            "title": "Result Text"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "dyslexia_probability": {
+            "type": "number",
+            "title": "Dyslexia Probability"
+          },
+          "predicted_class": {
+            "type": "integer",
+            "title": "Predicted Class"
+          },
+          "severity_score": {
+            "type": "number",
+            "title": "Severity Score"
+          },
+          "severity_level": {
+            "type": "string",
+            "title": "Severity Level"
+          },
+          "threshold_used": {
+            "type": "number",
+            "title": "Threshold Used"
+          },
+          "features": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "result_text",
+          "label",
+          "dyslexia_probability",
+          "predicted_class",
+          "severity_score",
+          "severity_level",
+          "threshold_used",
+          "features"
+        ],
+        "title": "DyslexiaPredictResponse"
+      },
+      "GenerateTextRequest": {
+        "properties": {
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Language of the generated sentence: 'id' (Indonesian) or 'en' (English)",
+            "default": "id"
+          },
+          "word_count": {
+            "type": "integer",
+            "maximum": 10,
+            "minimum": 1,
+            "title": "Word Count",
+            "description": "Number of words in the generated sentence",
+            "default": 5
+          },
+          "max_letters": {
+            "type": "integer",
+            "maximum": 8,
+            "minimum": 1,
+            "title": "Max Letters",
+            "description": "Maximum number of letters allowed per word",
+            "default": 8
+          }
+        },
+        "type": "object",
+        "title": "GenerateTextRequest"
+      },
+      "GenerateTextResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "sentence": {
+            "type": "string",
+            "title": "Sentence"
+          },
+          "word_count": {
+            "type": "integer",
+            "title": "Word Count"
+          },
+          "max_letters": {
+            "type": "integer",
+            "title": "Max Letters"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "model_used": {
+            "type": "string",
+            "title": "Model Used"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "sentence",
+          "word_count",
+          "max_letters",
+          "language",
+          "model_used"
+        ],
+        "title": "GenerateTextResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "OcrGridPredictRequest": {
+        "properties": {
+          "image_base64": {
+            "type": "string",
+            "title": "Image Base64",
+            "description": "Base64-encoded handwritten grid form image"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_base64"
+        ],
+        "title": "OcrGridPredictRequest"
+      },
+      "OcrGridPredictResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "total_rows_detected": {
+            "type": "integer",
+            "title": "Total Rows Detected"
+          },
+          "result_text": {
+            "type": "string",
+            "title": "Result Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "total_rows_detected",
+          "result_text"
+        ],
+        "title": "OcrGridPredictResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}

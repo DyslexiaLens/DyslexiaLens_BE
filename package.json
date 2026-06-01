@@ -9,6 +9,7 @@
     "migrate": "node src/config/migrate.js",
     "test": "newman run postman/DyslexiaLens-Backend.postman_collection.json -e postman/DyslexiaLens-Local.postman_environment.json",
     "test:json": "newman run postman/DyslexiaLens-Backend.postman_collection.json -e postman/DyslexiaLens-Local.postman_environment.json --reporters json --reporter-json-export test-results.json",
+    "smoke:ocr": "node scripts/ocr-smoke.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

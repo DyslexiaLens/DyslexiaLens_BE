@@ -6,11 +6,24 @@ const postgresErrorMap = {
   "22P02": { statusCode: 400, message: "Invalid input format" },
 };
 
+const multerErrorMap = {
+  LIMIT_FILE_SIZE: { statusCode: 413, message: "File size exceeds maximum limit" },
+};
+
 export const notFoundHandler = (_req, _res, next) => {
   next(new HttpError(404, "Route not found"));
 };
 
 export const errorHandler = (error, _req, res, _next) => {
+  if (error?.code && multerErrorMap[error.code]) {
+    const mapped = multerErrorMap[error.code];
+    return res.status(mapped.statusCode).json({
+      success: false,
+      message: mapped.message,
+      errors: null,
+    });
+  }
+
   if (error.code && postgresErrorMap[error.code]) {
     const mapped = postgresErrorMap[error.code];
     return res.status(mapped.statusCode).json({

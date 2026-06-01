@@ -28,3 +28,13 @@ export const uploadTranslationImage = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, result, "Translation success", 201);
 });
+
+export const generateText = asyncHandler(async (req, res) => {
+  const result = await aiService.generateText({
+    language: req.body.language,
+    wordCount: req.body.word_count ?? req.body.wordCount,
+    maxLetters: req.body.max_letters ?? req.body.maxLetters,
+  });
+
+  return sendSuccess(res, result, "Generate text success");
+});

@@ -2,7 +2,11 @@ import {
   createDetectionHistory,
   createTranslationHistory,
 } from "../models/historyModel.js";
-import { analyzeDyslexia, translateHandwriting } from "./realAiService.js";
+import {
+  analyzeDyslexia,
+  generatePracticeSentence,
+  translateHandwriting,
+} from "./realAiService.js";
 
 export const detectDyslexia = async ({ userId, filePath }) => {
   const result = await analyzeDyslexia(filePath);
@@ -38,3 +42,6 @@ export const translateImageText = async ({ userId, filePath }) => {
     history,
   };
 };
+
+export const generateText = async ({ language, wordCount, maxLetters }) =>
+  generatePracticeSentence({ language, wordCount, maxLetters });
