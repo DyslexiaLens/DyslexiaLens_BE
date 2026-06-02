@@ -22,5 +22,5 @@ export const env = {
   aiModelTimeoutMs: Number(process.env.AI_MODEL_TIMEOUT_MS || 30000),
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseKey: process.env.SUPABASE_KEY || "",
-  supabaseBucket: process.env.SUPABASE_BUCKET || "scan-results",
+  supabaseBucket: (process.env.SUPABASE_BUCKET || "scan-results").trim(),
 };
