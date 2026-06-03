@@ -6,8 +6,8 @@ const getModelUrl = (p) =>
     ? env.aiModelBaseUrl
     : `${env.aiModelBaseUrl}/`);
 
-const bufferToBase64 = (fileBuffer, mimetype) => {
-  return `data:${mimetype};base64,${fileBuffer.toString("base64")}`;
+const bufferToBase64 = (fileBuffer) => {
+  return fileBuffer.toString("base64");
 };
 
 const PRACTICE_WORDS = [
@@ -95,9 +95,9 @@ const requestModel = async (path, body) => {
   }
 };
 
-export const translateHandwriting = async ({ fileBuffer, mimetype }) => {
+export const translateHandwriting = async ({ fileBuffer }) => {
   const modelResponse = await requestModel("/api/v1/ocr/predict", {
-    image_base64: bufferToBase64(fileBuffer, mimetype),
+    image_base64: bufferToBase64(fileBuffer),
   });
 
   const extractedText = modelResponse?.result_text ?? "";
@@ -112,9 +112,9 @@ export const translateHandwriting = async ({ fileBuffer, mimetype }) => {
   };
 };
 
-export const analyzeDyslexia = async ({ fileBuffer, mimetype }) => {
+export const analyzeDyslexia = async ({ fileBuffer }) => {
   const modelResponse = await requestModel("/api/v1/dyslexia/predict", {
-    image_base64: bufferToBase64(fileBuffer, mimetype),
+    image_base64: bufferToBase64(fileBuffer),
   });
 
   const resultLabel = modelResponse?.label ?? "UNKNOWN";
