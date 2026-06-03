@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { env } from "../config/env.js";
 import { HttpError } from "../utils/httpError.js";
 
@@ -8,11 +6,8 @@ const getModelUrl = (p) =>
     ? env.aiModelBaseUrl
     : `${env.aiModelBaseUrl}/`);
 
-const readImageBase64 = async (filePath) => {
-  const imageBuffer = await readFile(filePath);
-  const ext = path.extname(filePath).toLowerCase();
-  const mimeType = ext === ".png" ? "image/png" : ext === ".gif" ? "image/gif" : "image/jpeg";
-  return `data:${mimeType};base64,${imageBuffer.toString("base64")}`;
+const bufferToBase64 = (fileBuffer, mimetype) => {
+  return `data:${mimetype};base64,${fileBuffer.toString("base64")}`;
 };
 
 const PRACTICE_WORDS = [
@@ -100,15 +95,14 @@ const requestModel = async (path, body) => {
   }
 };
 
-export const translateHandwriting = async (filePath) => {
+export const translateHandwriting = async ({ fileBuffer, mimetype }) => {
   const modelResponse = await requestModel("/api/v1/ocr/predict", {
-    image_base64: await readImageBase64(filePath),
+    image_base64: bufferToBase64(fileBuffer, mimetype),
   });
 
   const extractedText = modelResponse?.result_text ?? "";
 
   return {
-    imagePath: filePath,
     sourceText: extractedText,
     translatedText: extractedText,
     sourceLanguage: "handwriting",
@@ -118,9 +112,9 @@ export const translateHandwriting = async (filePath) => {
   };
 };
 
-export const analyzeDyslexia = async (filePath) => {
+export const analyzeDyslexia = async ({ fileBuffer, mimetype }) => {
   const modelResponse = await requestModel("/api/v1/dyslexia/predict", {
-    image_base64: await readImageBase64(filePath),
+    image_base64: bufferToBase64(fileBuffer, mimetype),
   });
 
   const resultLabel = modelResponse?.label ?? "UNKNOWN";
@@ -132,7 +126,6 @@ export const analyzeDyslexia = async (filePath) => {
   const predictedText = modelResponse?.result_text ?? resultLabel;
 
   return {
-    imagePath: filePath,
     predictedText,
     confidence,
     resultLabel,

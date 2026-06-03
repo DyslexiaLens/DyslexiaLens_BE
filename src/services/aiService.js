@@ -9,14 +9,14 @@ import {
 } from "./realAiService.js";
 import { uploadImageToSupabase } from "./supabaseService.js";
 
-export const detectDyslexia = async ({ userId, filePath }) => {
-  const result = await analyzeDyslexia(filePath);
+export const detectDyslexia = async ({ userId, fileBuffer, mimetype, originalname }) => {
+  const result = await analyzeDyslexia({ fileBuffer, mimetype });
   
-  let imageUrl = filePath;
+  let imageUrl = null;
   try {
-    imageUrl = await uploadImageToSupabase(filePath);
+    imageUrl = await uploadImageToSupabase({ fileBuffer, mimetype, originalname });
   } catch (error) {
-    console.error("Failed to upload to Supabase, falling back to local path:", error);
+    console.error("Failed to upload to Supabase:", error);
   }
 
   const history = await createDetectionHistory({
@@ -34,14 +34,14 @@ export const detectDyslexia = async ({ userId, filePath }) => {
   };
 };
 
-export const translateImageText = async ({ userId, filePath }) => {
-  const result = await translateHandwriting(filePath);
+export const translateImageText = async ({ userId, fileBuffer, mimetype, originalname }) => {
+  const result = await translateHandwriting({ fileBuffer, mimetype });
   
-  let imageUrl = filePath;
+  let imageUrl = null;
   try {
-    imageUrl = await uploadImageToSupabase(filePath);
+    imageUrl = await uploadImageToSupabase({ fileBuffer, mimetype, originalname });
   } catch (error) {
-    console.error("Failed to upload to Supabase, falling back to local path:", error);
+    console.error("Failed to upload to Supabase:", error);
   }
 
   const history = await createTranslationHistory({

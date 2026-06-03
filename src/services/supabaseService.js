@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import fs from "node:fs/promises";
 import path from "node:path";
 import { env } from "../config/env.js";
 import { HttpError } from "../utils/httpError.js";
@@ -10,7 +9,7 @@ if (env.supabaseUrl && env.supabaseKey) {
   supabase = createClient(env.supabaseUrl, env.supabaseKey);
 }
 
-export const uploadImageToSupabase = async (filePath) => {
+export const uploadImageToSupabase = async ({ fileBuffer, mimetype, originalname }) => {
   if (!supabase) {
     throw new HttpError(
       500,
@@ -18,21 +17,14 @@ export const uploadImageToSupabase = async (filePath) => {
     );
   }
 
-  const fileExt = path.extname(filePath);
-  const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
+  const ext = path.extname(originalname) || ".jpg";
+  const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
   
   try {
-    const fileBuffer = await fs.readFile(filePath);
-    
-    // Determine content type
-    let contentType = "image/jpeg";
-    if (fileExt.toLowerCase() === ".png") contentType = "image/png";
-    if (fileExt.toLowerCase() === ".gif") contentType = "image/gif";
-
     const { error } = await supabase.storage
       .from(env.supabaseBucket)
       .upload(fileName, fileBuffer, {
-        contentType,
+        contentType: mimetype,
         cacheControl: "3600",
         upsert: false,
       });
@@ -41,7 +33,6 @@ export const uploadImageToSupabase = async (filePath) => {
       throw error;
     }
 
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from(env.supabaseBucket)
       .getPublicUrl(fileName);

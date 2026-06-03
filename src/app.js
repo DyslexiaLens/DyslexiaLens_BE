@@ -10,7 +10,12 @@ import { sendSuccess } from "./utils/response.js";
 
 export const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false,
+  })
+);
 const allowedOrigins = env.frontendUrl
   ? env.frontendUrl.split(",").map((url) => url.trim())
   : [];
@@ -40,7 +45,14 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
-app.use("/uploads", express.static("uploads"));
+app.use(
+  "/uploads",
+  express.static("uploads", {
+    setHeaders: (res) => {
+      res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
 
 app.get("/", (_req, res) =>
   sendSuccess(

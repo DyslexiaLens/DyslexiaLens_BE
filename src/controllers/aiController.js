@@ -10,7 +10,9 @@ export const uploadDetectionImage = asyncHandler(async (req, res) => {
 
   const result = await aiService.detectDyslexia({
     userId: req.user.userId,
-    filePath: req.file.path,
+    fileBuffer: req.file.buffer,
+    mimetype: req.file.mimetype,
+    originalname: req.file.originalname,
   });
 
   return sendSuccess(res, result, "Detection success", 201);
@@ -23,7 +25,9 @@ export const uploadTranslationImage = asyncHandler(async (req, res) => {
 
   const result = await aiService.translateImageText({
     userId: req.user.userId,
-    filePath: req.file.path,
+    fileBuffer: req.file.buffer,
+    mimetype: req.file.mimetype,
+    originalname: req.file.originalname,
   });
 
   return sendSuccess(res, result, "Translation success", 201);

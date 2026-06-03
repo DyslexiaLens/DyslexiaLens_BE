@@ -5,3 +5,4 @@ uploads/*
 npm-debug.log*
 .vercel
 .env*
+testsprite_tests
