@@ -36,11 +36,8 @@ const PRACTICE_WORDS = [
 const buildPracticeSentence = ({ language, wordCount, maxLetters }) => {
   const filteredWords = PRACTICE_WORDS.filter((word) => word.length <= maxLetters);
   const sourceWords = filteredWords.length > 0 ? filteredWords : PRACTICE_WORDS;
-  const selectedWords = [];
-
-  for (let index = 0; index < wordCount; index += 1) {
-    selectedWords.push(sourceWords[index % sourceWords.length]);
-  }
+  const shuffled = [...sourceWords].sort(() => Math.random() - 0.5);
+  const selectedWords = shuffled.slice(0, wordCount);
 
   const sentence = selectedWords.join(" ");
 
@@ -142,12 +139,14 @@ export const generatePracticeSentence = async ({
   language = "id",
   wordCount = 5,
   maxLetters = 8,
+  seed,
 } = {}) => {
   try {
     const modelResponse = await requestModel("/api/v1/ai/generate-text", {
       language,
       word_count: wordCount,
       max_letters: maxLetters,
+      seed,
     });
 
     return {

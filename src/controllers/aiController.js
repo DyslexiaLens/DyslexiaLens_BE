@@ -38,6 +38,7 @@ export const generateText = asyncHandler(async (req, res) => {
     language: req.body.language,
     wordCount: req.body.word_count ?? req.body.wordCount,
     maxLetters: req.body.max_letters ?? req.body.maxLetters,
+    seed: req.body.seed,
   });
 
   return sendSuccess(res, result, "Generate text success");

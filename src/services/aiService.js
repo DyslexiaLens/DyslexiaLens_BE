@@ -60,5 +60,5 @@ export const translateImageText = async ({ userId, fileBuffer, mimetype, origina
   };
 };
 
-export const generateText = async ({ language, wordCount, maxLetters }) =>
-  generatePracticeSentence({ language, wordCount, maxLetters });
+export const generateText = async ({ language, wordCount, maxLetters, seed }) =>
+  generatePracticeSentence({ language, wordCount, maxLetters, seed });
