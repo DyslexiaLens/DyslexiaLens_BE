@@ -15,7 +15,6 @@ export const notFoundHandler = (_req, _res, next) => {
 };
 
 export const errorHandler = (error, _req, res, _next) => {
-  // Log the full error to the terminal for debugging
   console.error("Unhandled API Error:", error);
 
   if (error?.code && multerErrorMap[error.code]) {
@@ -39,11 +38,19 @@ export const errorHandler = (error, _req, res, _next) => {
   const statusCode = error instanceof HttpError ? error.statusCode : 500;
   const message =
     error instanceof HttpError ? error.message : "Internal server error";
-  const errors = error instanceof HttpError ? error.details : null;
+  const details = error instanceof HttpError ? error.details : null;
 
-  return res.status(statusCode).json({
+  const response = {
     success: false,
     message,
-    errors,
-  });
+    errors: null,
+  };
+
+  if (details && typeof details === "object") {
+    response.errorType = details.errorType || null;
+    response.remainingAttempts = details.remainingAttempts ?? null;
+    response.remainingMinutes = details.remainingMinutes ?? null;
+  }
+
+  return res.status(statusCode).json(response);
 };

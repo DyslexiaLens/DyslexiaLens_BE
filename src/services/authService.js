@@ -11,6 +11,13 @@ import {
   findUserById,
   updateUserPasswordById,
 } from "../models/userModel.js";
+import {
+  recordLoginAttempt,
+  isAccountLocked,
+  getRemainingLockoutTime,
+  resetFailedAttempts,
+  getFailedAttemptCount,
+} from "../models/loginAttemptsModel.js";
 import { HttpError } from "../utils/httpError.js";
 import { generateOtpCode } from "../utils/otp.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
@@ -35,17 +42,59 @@ export const register = async ({ fullName, email, password }) => {
   return buildPublicUser(user);
 };
 
-export const login = async ({ email, password }) => {
+export const login = async ({ email, ipAddress: _ipAddress }) => {
   const user = await findUserByEmail(email);
 
   if (!user) {
-    throw new HttpError(401, "Invalid email or password");
+    throw new HttpError(404, "Email not registered", {
+      errorType: "email_not_found",
+    });
+  }
+
+  const locked = await isAccountLocked(email);
+  if (locked) {
+    const remainingMinutes = await getRemainingLockoutTime(email);
+    throw new HttpError(423, "Account locked", {
+      errorType: "account_locked",
+      remainingMinutes,
+    });
+  }
+
+  return { user };
+};
+
+export const verifyLoginPassword = async ({ email, password, ipAddress }) => {
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    throw new HttpError(404, "Email not registered", {
+      errorType: "email_not_found",
+    });
   }
 
   const isPasswordMatch = await comparePassword(password, user.password_hash);
+
   if (!isPasswordMatch) {
-    throw new HttpError(401, "Invalid email or password");
+    await recordLoginAttempt({ email, ipAddress, success: false });
+
+    const failedCount = await getFailedAttemptCount(email);
+    const remainingAttempts = 3 - failedCount;
+
+    if (remainingAttempts <= 0) {
+      throw new HttpError(423, "Account locked after 3 failed attempts", {
+        errorType: "account_locked",
+        remainingMinutes: 15,
+      });
+    }
+
+    throw new HttpError(401, "Invalid password", {
+      errorType: "wrong_password",
+      remainingAttempts,
+    });
   }
+
+  await resetFailedAttempts(email);
+  await recordLoginAttempt({ email, ipAddress, success: true });
 
   const token = signAccessToken({ userId: user.id, email: user.email });
 

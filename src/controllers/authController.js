@@ -9,7 +9,17 @@ export const register = asyncHandler(async (req, res) => {
 });
 
 export const login = asyncHandler(async (req, res) => {
-  const result = await authService.login(req.body);
+  const { email, password } = req.body;
+  const ipAddress = req.ip || req.connection?.remoteAddress;
+
+  await authService.login({ email, ipAddress });
+
+  const result = await authService.verifyLoginPassword({
+    email,
+    password,
+    ipAddress,
+  });
+
   return sendSuccess(res, result, "Login success");
 });
 
