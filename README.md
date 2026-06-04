@@ -8,15 +8,23 @@ Backend ini menyediakan layanan manajemen pengguna (autentikasi dan profil), pen
 
 ## Tech Stack Utama
 
-- **Runtime & Framework:** Node.js (ES Modules) + Express.js
-- **Database:** PostgreSQL (menggunakan driver native `pg` pool)
-- **Autentikasi:** JSON Web Token (JWT) via `jsonwebtoken`
-- **Keamanan Kredensial:** Password Hashing via `bcrypt`
-- **Unggah Gambar:** `multer` (penyimpanan lokal di `/uploads` dengan validasi ukuran dan MIME type)
-- **Validasi Data:** Robust Request Validation via `express-validator`
-- **Environment Management:** `dotenv`
-- **Pemeriksa Kualitas Kode:** `eslint` (Flat configuration)
-- **Testing:** Postman Collection + Newman CLI
+| Kategori | Teknologi | Versi |
+| :--- | :--- | :--- |
+| **Runtime & Framework** | Node.js (ES Modules) + Express.js | v18+ / 5.2.1 |
+| **Database** | PostgreSQL (driver native `pg` pool) | 8.20.0 |
+| **Autentikasi** | JSON Web Token (JWT) | 9.0.3 |
+| **Password Hashing** | bcrypt | 6.0.0 |
+| **File Upload** | multer (penyimpanan lokal) | 2.1.1 |
+| **Request Validation** | express-validator | 7.3.2 |
+| **Cloud Storage** | Supabase Storage | 2.106.2 |
+| **Email/SMTP** | nodemailer | 8.0.10 |
+| **API Docs** | Swagger UI + swagger-jsdoc | 5.0.1 / 6.2.8 |
+| **Security** | helmet (CSP, CORS), cors | 8.1.0 / 2.8.6 |
+| **Logging** | morgan | 1.10.1 |
+| **Env Management** | dotenv | 17.4.2 |
+| **Dev: Hot Reload** | nodemon | 3.1.14 |
+| **Linting** | ESLint (flat config) | 10.4.0 |
+| **Testing** | Newman (Postman CLI runner) | 2.1.2 |
 
 ---
 
@@ -58,6 +66,40 @@ back-end/
 
 ---
 
+## Environment Variables
+
+Berkas `.env` wajib dikonfigurasi sebelum menjalankan aplikasi. Gunakan `.env.example` sebagai template:
+
+```bash
+cp .env.example .env
+```
+
+### Referensi Variabel Lingkungan
+
+| Variabel | Deskripsi | Default |
+| :--- | :--- | :--- |
+| `NODE_ENV` | Mode lingkungan aplikasi | `development` |
+| `PORT` | Port server backend | `5000` |
+| `DATABASE_URL` | URL koneksi PostgreSQL | - |
+| `JWT_SECRET` | Rahasia untuk penandatanganan JWT | - |
+| `JWT_EXPIRES_IN` | Masa berlaku token JWT | `7d` |
+| `OTP_EXPIRES_MINUTES` | Masa berlaku kode OTP (menit) | `10` |
+| `MAX_FILE_SIZE_MB` | Ukuran maksimum unggahan gambar (MB) | `5` |
+| `FRONTEND_URL` | URL frontend untuk CORS | `http://localhost:5173` |
+| `AI_MODEL_BASE_URL` | URL endpoint model AI (Hugging Face) | - |
+| `AI_MODEL_API_KEY` | API Key untuk autentikasi model AI | - |
+| `AI_MODEL_TIMEOUT_MS` | Timeout request AI (ms) | `30000` |
+| `SMTP_HOST` | Host server SMTP | `smtp-relay.brevo.com` |
+| `SMTP_PORT` | Port SMTP | `587` |
+| `SMTP_USER` | Username SMTP | - |
+| `SMTP_PASS` | Password SMTP | - |
+| `SMTP_FROM` | Alamat email pengirim | - |
+| `SUPABASE_URL` | URL proyek Supabase | - |
+| `SUPABASE_KEY` | API Key Supabase (anon/service) | - |
+| `SUPABASE_BUCKET` | Nama bucket Supabase Storage | `scan-results` |
+
+---
+
 ## Panduan Setup Singkat
 
 Untuk rincian setup yang lebih lengkap, silakan merujuk pada berkas [SETUP.md](file:///d:/Homework/Dicoding/DBS%20Coding%20Camp/Capstone/back-end/SETUP.md).
@@ -70,7 +112,7 @@ Untuk rincian setup yang lebih lengkap, silakan merujuk pada berkas [SETUP.md](f
    ```bash
    cp .env.example .env
    ```
-   *Sesuaikan kredensial PostgreSQL dan konfigurasi SMTP Mailer Anda di dalam berkas `.env`.*
+   *Sesuaikan kredensial PostgreSQL, API Key AI, dan konfigurasi SMTP Mailer Anda di dalam berkas `.env`.*
 3. **Jalankan Migrasi Database:**
    ```bash
    npm run migrate
@@ -90,12 +132,40 @@ Aplikasi backend ini telah **sepenuhnya terintegrasi** dengan mesin kecerdasan b
 1. Pengguna mengunggah gambar tulisan tangan via multipart form-data.
 2. Backend membaca gambar tersebut dari sistem penyimpanan lokal (`uploads/`).
 3. Gambar diubah menjadi representasi string Base64.
-4. Backend mengirimkan request HTTP POST menuju endpoint `https://dyslexialens-dyslexialens-dicoding-ai.hf.space/api/v1/dyslexia/predict` untuk deteksi disleksia, `/api/v1/ocr/predict` untuk ekstraksi teks, dan `/api/v1/ai/generate-text` untuk pembuatan teks latihan pada server model AI yang ditentukan melalui variabel lingkungan `AI_MODEL_BASE_URL`, lengkap dengan pengamanan header API Key (`X-API-Key`) menggunakan `AI_MODEL_API_KEY`.
-5. Respons hasil dari model AI dipetakan secara terstruktur:
-   - **Fitur Deteksi Disleksia (`analyzeDyslexia`):** Mengembalikan label klasifikasi (`resultLabel`, seperti `LIKELY_DYSLEXIA_PATTERN`), probabilitas tingkat keyakinan (`confidence`), skor keparahan (`severityScore`), tingkat keparahan (`severityLevel`), beserta transkrip teks mentah hasil prediksi (`predictedText`).
-  - **Fitur Translasi Korektif (`translateHandwriting`):** Mengembalikan pembacaan tulisan tangan OCR (`sourceText`), hasil normalisasi teks (`translatedText`), total baris terdeteksi (`totalRowsDetected`), serta penanda bahasa (`sourceLanguage: "handwriting"`, `targetLanguage: "text"`).
-  - **Fitur Generasi Teks Latihan (`generatePracticeSentence`):** Mengembalikan kalimat latihan (`sentence`), jumlah kata, batas huruf per kata, bahasa, dan model yang dipakai.
-6. Hasil tersebut otomatis tersimpan ke dalam database PostgreSQL sebagai rekaman riwayat terenskripsi JSONB dan dikembalikan ke pengguna.
+4. Backend mengirimkan request HTTP POST menuju endpoint model AI yang dikonfigurasi melalui variabel lingkungan `AI_MODEL_BASE_URL`, lengkap dengan pengamanan header API Key (`X-API-Key`) menggunakan `AI_MODEL_API_KEY`.
+
+### Endpoint AI yang Digunakan
+
+| Endpoint | Fungsi | Respons Utama |
+| :--- | :--- | :--- |
+| `POST /api/v1/dyslexia/predict` | Deteksi pola disleksia | `label`, `confidence`, `severityScore`, `severityLevel`, `predictedText` |
+| `POST /api/v1/ocr/predict` | Ekstraksi teks tulisan tangan | `sourceText`, `translatedText`, `totalRowsDetected` |
+| `POST /api/v1/ai/generate-text` | Generasi kalimat latihan | `sentence`, `wordCount`, `maxLetters`, `language` |
+
+### Fitur Deteksi Disleksia (`analyzeDyslexia`)
+Mengembalikan data terstruktur:
+- `resultLabel`: Label klasifikasi (contoh: `LIKELY_DYSLEXIA_PATTERN`)
+- `confidence`: Probabilitas tingkat keyakinan (0-1)
+- `severityScore`: Skor keparahan
+- `severityLevel`: Tingkat keparahan
+- `predictedText`: Transkrip teks mentah hasil prediksi
+- `features`: Fitur tambahan dari model
+
+### Fitur Translasi Korektif (`translateHandwriting`)
+Mengembalikan data terstruktur:
+- `sourceText`: Pembacaan tulisan tangan OCR
+- `translatedText`: Hasil normalisasi teks
+- `totalRowsDetected`: Total baris terdeteksi
+- `sourceLanguage`: `"handwriting"`
+- `targetLanguage`: `"text"`
+
+### Fitur Generasi Teks Latihan (`generatePracticeSentence`)
+Mengembalikan data terstruktur:
+- `sentence`: Kalimat latihan
+- `wordCount`: Jumlah kata
+- `maxLetters`: Batas huruf per kata
+- `language`: Bahasa
+- `modelUsed`: Model yang digunakan
 
 > [!TIP]
 > Jika Anda ingin bekerja secara offline atau tanpa koneksi ke server model AI Hugging Face, Anda dapat mengubah kembali import layanan AI di `src/services/aiService.js` untuk mengarah ke `mockAiService.js` yang akan menyimulasikan respons model secara instan.
@@ -173,6 +243,12 @@ erDiagram
 ### Catatan Penting Mengenai Skema Alamat (`user_addresses`)
 Mengingat frontend saat ini hanya mengirimkan field alamat esensial yaitu `country`, `city`, dan `postalCode`, proses penyimpanan melalui model `upsertUserAddress` akan otomatis memasok nilai string kosong `""` ke kolom `street` dan `province` di database demi kelancaran integritas data tanpa merusak struktur migrasi awal.
 
+### Catatan Mengenai Data AI di `raw_response`
+Kolom `raw_response` (JSONB) pada tabel `detection_histories` dan `translation_histories` menyimpan seluruh respons mentah dari model AI, termasuk:
+- `severityScore` dan `severityLevel` untuk deteksi disleksia
+- `features` (fitur tambahan dari model)
+- Data lain yang tidak memiliki kolom khusus di database
+
 ---
 
 ## Format Respons API
@@ -227,6 +303,41 @@ Konsistensi data respons adalah prioritas utama untuk mencegah eror parsing di f
 }
 ```
 
+### 4. Respons Deteksi Disleksia (200 OK)
+```json
+{
+  "success": true,
+  "message": "Dyslexia analysis completed",
+  "data": {
+    "id": 1,
+    "imageUrl": "https://supabase.co/storage/...",
+    "predictedText": "contoh teks",
+    "confidence": 0.85,
+    "resultLabel": "LIKELY_DYSLEXIA_PATTERN",
+    "severityScore": 0.72,
+    "severityLevel": "moderate",
+    "createdAt": "2026-06-04T10:30:00.000Z"
+  }
+}
+```
+
+### 5. Respons Translasi Tulisan Tangan (200 OK)
+```json
+{
+  "success": true,
+  "message": "Handwriting translation completed",
+  "data": {
+    "id": 1,
+    "imageUrl": "https://supabase.co/storage/...",
+    "sourceText": "tulisan tangan",
+    "translatedText": "tulisan tangan",
+    "sourceLanguage": "handwriting",
+    "targetLanguage": "text",
+    "createdAt": "2026-06-04T10:35:00.000Z"
+  }
+}
+```
+
 ---
 
 ## Dokumentasi API Interaktif (Swagger UI)
@@ -277,17 +388,82 @@ newman run postman/DyslexiaLens-Backend.postman_collection.json -e postman/Dysle
 
 ---
 
+## Fitur Keamanan
+
+Backend ini dilengkapi dengan berbagai fitur keamanan:
+
+| Fitur | Deskripsi |
+| :--- | :--- |
+| **Helmet** | Mengamankan HTTP headers (CSP, XSS protection, dll) |
+| **CORS** | Whitelist domain frontend yang diizinkan |
+| **JWT Authentication** | Token-based stateless authentication |
+| **Password Hashing** | bcrypt dengan salt rounds untuk keamanan password |
+| **File Upload Validation** | Validasi MIME type (image/*) dan ukuran maksimum (5MB) |
+| **Parameterized Queries** | Pencegahan SQL injection melalui parameterized queries |
+| **Request Validation** | Validasi input menggunakan express-validator |
+| **Rate Limiting** | *Belum diterapkan* - direkomendasi untuk produksi |
+
+---
+
+## Deployment
+
+### Vercel (Serverless)
+
+Backend dikonfigurasi untuk deployment sebagai Vercel Serverless Function:
+
+- **Entry Point:** `api/index.js`
+- **Max Duration:** 10 detik
+- **Rewrite Rules:** Semua route diarahkan ke serverless function
+
+Konfigurasi `vercel.json`:
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.js"
+    }
+  ]
+}
+```
+
+### Standalone Server
+
+Untuk deployment traditional (VPS, Docker, dll):
+```bash
+npm install
+npm run migrate
+npm start
+```
+
+> [!NOTE]
+> Server akan otomatis melewati `app.listen()` jika environment variable `VERCEL` terdeteksi.
+
+---
+
 ## NPM Scripts Reference
 
 Berikut adalah perintah singkat yang dapat Anda jalankan menggunakan npm:
 
-- `npm run dev` : Memulai server lokal dengan hot-reload memanfaatkan `nodemon`.
-- `npm run start` : Menjalankan server aplikasi pada mode produksi.
-- `npm run migrate` : Mengeksekusi migrasi tabel dan indeks SQL ke PostgreSQL.
-- `npm run lint` : Melakukan pemindaian kualitas kode menggunakan ESLint.
-- `npm run lint:fix` : Menganalisis sekaligus memperbaiki error/warning ESLint secara otomatis.
+| Script | Deskripsi |
+| :--- | :--- |
+| `npm run dev` | Memulai server lokal dengan hot-reload menggunakan `nodemon` |
+| `npm run start` | Menjalankan server aplikasi pada mode produksi |
+| `npm run migrate` | Mengeksekusi migrasi tabel dan indeks SQL ke PostgreSQL |
+| `npm run test` | Menjalankan suite pengujian Postman menggunakan Newman |
+| `npm run test:json` | Menjalankan pengujian dengan output JSON |
+| `npm run smoke:ocr` | Menjalankan smoke test untuk endpoint OCR |
+| `npm run lint` | Melakukan pemindaian kualitas kode menggunakan ESLint |
+| `npm run lint:fix` | Menganalisis sekaligus memperbaiki error/warning ESLint secara otomatis |
 
 ---
 
-**Version:** DyslexiaLens Backend v1.1.0  
-**Last Updated:** June 1, 2026
+**Version:** DyslexiaLens Backend v1.2.0  
+**Last Updated:** June 4, 2026

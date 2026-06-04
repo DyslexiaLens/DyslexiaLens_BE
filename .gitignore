@@ -1,8 +1,37 @@
+# Dependency directories
 node_modules/
+
+# Environment variables (keep .env.example)
 .env
+.env.*
+!.env.example
+
+# File uploads (keep gitkeep)
 uploads/*
 !uploads/.gitkeep
+
+# Logs
+*.log
 npm-debug.log*
-.vercel
-.env*
-testsprite_tests
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing & TestSprite
+testsprite_tests/
+test-results.json
+
+# Production / Deployment
+.vercel/
+dist/
+
+# IDE / System
+.vscode/
+.DS_Store
+Thumbs.db
+
+# AI agent configs
+.agents/
+
+# Postman local environment (contains credentials)
+postman/*Local.postman_environment.json
