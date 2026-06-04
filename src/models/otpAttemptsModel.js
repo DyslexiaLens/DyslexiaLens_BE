@@ -1,8 +1,8 @@
-import { db } from "../config/db.js";
+import { query } from "../config/database.js";
 
 // Record an OTP verification attempt
 export const recordOtpAttempt = async ({ email, success }) => {
-  await db.query(
+  await query(
     `INSERT INTO otp_attempts (email, success, attempted_at)
      VALUES ($1, $2, NOW())`,
     [email, success],
@@ -11,7 +11,7 @@ export const recordOtpAttempt = async ({ email, success }) => {
 
 // Get failed OTP attempt count in last 10 minutes
 export const getOtpFailedAttemptCount = async (email) => {
-  const { rows } = await db.query(
+  const { rows } = await query(
     `SELECT COUNT(*) as count
      FROM otp_attempts
      WHERE email = $1
@@ -30,7 +30,7 @@ export const isOtpLocked = async (email) => {
 
 // Get remaining lockout time in minutes
 export const getOtpRemainingLockoutTime = async (email) => {
-  const { rows } = await db.query(
+  const { rows } = await query(
     `SELECT MAX(attempted_at) as last_attempt
      FROM otp_attempts
      WHERE email = $1
@@ -52,7 +52,7 @@ export const getOtpRemainingLockoutTime = async (email) => {
 
 // Reset failed OTP attempts after successful verification
 export const resetOtpFailedAttempts = async (email) => {
-  await db.query(
+  await query(
     `DELETE FROM otp_attempts
      WHERE email = $1 AND success = false`,
     [email],
