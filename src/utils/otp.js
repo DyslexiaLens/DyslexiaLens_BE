@@ -1,2 +1,4 @@
+import crypto from "crypto";
+
 export const generateOtpCode = () =>
-  String(Math.floor(100000 + Math.random() * 900000));
+  String(crypto.randomInt(100000, 999999));

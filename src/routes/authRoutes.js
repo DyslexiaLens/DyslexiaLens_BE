@@ -10,7 +10,12 @@ import {
 } from "../validators/authValidator.js";
 import { handleValidationResult } from "../validators/validationResult.js";
 import { authenticate } from "../middlewares/authMiddleware.js";
-import { sendOtpEmail } from "../utils/sendEmail.js";
+import {
+  otpRequestLimiter,
+  otpVerifyLimiter,
+  loginLimiter,
+  passwordChangeLimiter,
+} from "../middlewares/rateLimit.js";
 
 const router = Router();
 
@@ -139,6 +144,7 @@ router.post(
  */
 router.post(
   "/login",
+  loginLimiter,
   loginValidator,
   handleValidationResult,
   authController.login,
@@ -171,6 +177,7 @@ router.post(
  */
 router.post(
   "/forgot-password",
+  otpRequestLimiter,
   forgotPasswordValidator,
   handleValidationResult,
   authController.forgotPassword,
@@ -207,6 +214,7 @@ router.post(
  */
 router.post(
   "/verify-otp",
+  otpVerifyLimiter,
   verifyOtpValidator,
   handleValidationResult,
   authController.verifyOtp,
@@ -247,6 +255,7 @@ router.post(
  */
 router.post(
   "/reset-password",
+  otpVerifyLimiter,
   resetPasswordValidator,
   handleValidationResult,
   authController.resetPassword,
@@ -270,6 +279,7 @@ router.post(
 router.post(
   "/change-password/otp",
   authenticate,
+  passwordChangeLimiter,
   authController.requestChangePasswordOtp,
 );
 
@@ -313,38 +323,10 @@ router.post(
 router.patch(
   "/change-password",
   authenticate,
+  passwordChangeLimiter,
   changePasswordValidator,
   handleValidationResult,
   authController.changePassword,
 );
 
-router.post("/test-email", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email parameter is required in the request body",
-      });
-    }
-
-    await sendOtpEmail({
-      to: email,
-      otp: "123456",
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Email berhasil dikirim",
-    });
-  } catch (error) {
-    console.error("EMAIL ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-});
 export { router as authRoutes };

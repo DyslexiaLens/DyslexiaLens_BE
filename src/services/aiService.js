@@ -13,10 +13,12 @@ export const detectDyslexia = async ({ userId, fileBuffer, mimetype, originalnam
   const result = await analyzeDyslexia({ fileBuffer, mimetype });
   
   let imageUrl = null;
+  let imageUploadWarning = null;
   try {
     imageUrl = await uploadImageToSupabase({ fileBuffer, mimetype, originalname });
   } catch (error) {
     console.error("Failed to upload to Supabase:", error);
+    imageUploadWarning = "Gagal mengunggah gambar ke penyimpanan cloud. Gambar tidak akan muncul di riwayat.";
   }
 
   const history = await createDetectionHistory({
@@ -31,6 +33,7 @@ export const detectDyslexia = async ({ userId, fileBuffer, mimetype, originalnam
   return {
     result,
     history,
+    imageUploadWarning,
   };
 };
 
@@ -38,10 +41,12 @@ export const translateImageText = async ({ userId, fileBuffer, mimetype, origina
   const result = await translateHandwriting({ fileBuffer, mimetype });
   
   let imageUrl = null;
+  let imageUploadWarning = null;
   try {
     imageUrl = await uploadImageToSupabase({ fileBuffer, mimetype, originalname });
   } catch (error) {
     console.error("Failed to upload to Supabase:", error);
+    imageUploadWarning = "Gagal mengunggah gambar ke penyimpanan cloud. Gambar tidak akan muncul di riwayat.";
   }
 
   const history = await createTranslationHistory({
@@ -57,6 +62,7 @@ export const translateImageText = async ({ userId, fileBuffer, mimetype, origina
   return {
     result,
     history,
+    imageUploadWarning,
   };
 };
 

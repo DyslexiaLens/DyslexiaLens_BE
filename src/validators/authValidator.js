@@ -20,7 +20,9 @@ export const verifyOtpValidator = [
   body("otpCode")
     .customSanitizer((val) => (val !== undefined && val !== null ? String(val) : ""))
     .isLength({ min: 6, max: 6 })
-    .withMessage("otpCode must be 6 digits"),
+    .withMessage("otpCode must be 6 digits")
+    .isNumeric()
+    .withMessage("otpCode must contain only numbers"),
 ];
 
 export const resetPasswordValidator = [
@@ -28,7 +30,9 @@ export const resetPasswordValidator = [
   body("otpCode")
     .customSanitizer((val) => (val !== undefined && val !== null ? String(val) : ""))
     .isLength({ min: 6, max: 6 })
-    .withMessage("otpCode must be 6 digits"),
+    .withMessage("otpCode must be 6 digits")
+    .isNumeric()
+    .withMessage("otpCode must contain only numbers"),
   body("newPassword")
     .isLength({ min: 8 })
     .withMessage("newPassword min length is 8"),
@@ -40,7 +44,9 @@ export const changePasswordValidator = [
     .optional({ checkFalsy: true })
     .customSanitizer((val) => (val !== undefined && val !== null ? String(val) : ""))
     .isLength({ min: 6, max: 6 })
-    .withMessage("otpCode must be 6 digits"),
+    .withMessage("otpCode must be 6 digits")
+    .isNumeric()
+    .withMessage("otpCode must contain only numbers"),
   body("newPassword")
     .isLength({ min: 8 })
     .withMessage("newPassword min length is 8"),

@@ -10,6 +10,7 @@ const getTransporter = () => {
     host: env.smtpHost,
     port: env.smtpPort,
     secure: false,
+    requireTLS: true,
     auth: {
       user: env.smtpUser,
       pass: env.smtpPass,
@@ -28,7 +29,7 @@ export const sendOtpEmail = async ({ to, otp }) => {
       <h2>Reset Password</h2>
       <p>Kode OTP kamu adalah:</p>
       <h1 style="letter-spacing: 4px;">${otp}</h1>
-      <p>Kode ini berlaku selama 5 menit.</p>
+      <p>Kode ini berlaku selama 10 menit.</p>
       <p>Abaikan email ini jika kamu tidak meminta reset password.</p>
     `,
   });
