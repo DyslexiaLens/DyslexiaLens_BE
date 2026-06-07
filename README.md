@@ -126,6 +126,8 @@ Untuk rincian setup yang lebih lengkap, silakan merujuk pada berkas [SETUP.md](f
 
 ## Integrasi Layanan AI Riil (Real AI Engine)
 
+![Core Services & AI Integration](docs/core-services-ai-integration.png)
+
 Aplikasi backend ini telah **sepenuhnya terintegrasi** dengan mesin kecerdasan buatan riil melalui berkas `src/services/realAiService.js`.
 
 ### Mekanisme Kerja
@@ -175,6 +177,8 @@ Mengembalikan data terstruktur:
 ## Struktur Database Skema (PostgreSQL)
 
 Berikut adalah relasi dan kolom dari kelima tabel utama yang diinisialisasi melalui migrasi SQL:
+
+![ERD DyslexiaLens](docs/erd_dyslexialens.png)
 
 ```mermaid
 erDiagram
