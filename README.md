@@ -406,5 +406,45 @@ Berikut adalah perintah singkat yang dapat Anda jalankan menggunakan npm:
 
 ---
 
+## Checklist Progres Akhir Backend
+
+Berikut adalah status penyelesaian fitur dan kesiapan backend DyslexiaLens:
+
+### 🔑 Autentikasi & Pengguna
+- [x] Registrasi Akun Baru (`POST /api/v1/auth/register`)
+- [x] Login & Penyerahan JWT (`POST /api/v1/auth/login`)
+- [x] Lupa Kata Sandi via OTP Email (`POST /api/v1/auth/forgot-password`)
+- [x] Verifikasi OTP (`POST /api/v1/auth/verify-otp`)
+- [x] Reset & Ubah Kata Sandi (`POST /api/v1/auth/reset-password` / `PATCH /api/v1/auth/change-password`)
+- [x] Get & Update Profil & Alamat (`GET /api/v1/profile` / `PATCH /api/v1/profile`)
+
+### 🧠 Integrasi Layanan AI
+- [x] Pengiriman gambar multipart form-data & konversi Base64
+- [x] Integrasi model deteksi disleksia (`POST /api/v1/dyslexia/predict` via Hugging Face)
+- [x] Integrasi model OCR tulisan tangan (`POST /api/v1/ocr/predict` via Hugging Face)
+- [x] Integrasi model text generator latihan (`POST /api/v1/ai/generate-text`)
+- [x] Implementasi **Mock AI Service** untuk fallback pengembangan lokal offline
+
+### 📂 Penyimpanan & Riwayat
+- [x] Integrasi **Supabase Storage** untuk unggah berkas gambar secara cloud
+- [x] Penyimpanan riwayat deteksi & translasi ke PostgreSQL
+- [x] Penyimpanan fleksibel metadata model AI menggunakan tipe data **JSONB** (`raw_response`)
+- [x] Pengambilan riwayat per pengguna (`GET /api/v1/history`)
+- [x] Penghapusan riwayat tertentu (`DELETE /api/v1/history/:id`)
+
+### 🛡️ Keamanan & Kualitas Kode
+- [x] HTTP headers protection (`helmet`)
+- [x] Pembatasan CORS domain frontend
+- [x] Proteksi SQL Injection (parameterized queries)
+- [x] Pembatasan file upload (multer validation MIME & size 5MB)
+- [x] Pemindaian & standardisasi kode dengan **ESLint**
+
+### 🧪 Dokumentasi & Pengujian
+- [x] Dokumentasi API interaktif dengan **Swagger UI** (`/api-docs`)
+- [x] Automated testing menggunakan **Postman & Newman CLI** (100% test case lulus)
+- [x] Konfigurasi serverless deployment untuk **Vercel** (`vercel.json`)
+
+---
+
 **Version:** DyslexiaLens Backend v1.2.0  
-**Last Updated:** June 4, 2026
+**Last Updated:** June 7, 2026
