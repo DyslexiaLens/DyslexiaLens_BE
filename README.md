@@ -180,69 +180,6 @@ Berikut adalah relasi dan kolom dari kelima tabel utama yang diinisialisasi mela
 
 ![ERD DyslexiaLens](docs/erd_dyslexialens.png)
 
-```mermaid
-erDiagram
-    users ||--o| user_addresses : "has one"
-    users ||--o{ password_reset_otps : "requests"
-    users ||--o{ detection_histories : "has"
-    users ||--o{ translation_histories : "has"
-
-    users {
-        bigint id PK
-        varchar full_name
-        varchar email UK
-        text password_hash
-        varchar phone
-        date birth_date
-        text avatar_url
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    user_addresses {
-        bigint id PK
-        bigint user_id FK, UK
-        text street
-        varchar city
-        varchar province
-        varchar postal_code
-        varchar country
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    password_reset_otps {
-        bigint id PK
-        bigint user_id FK
-        varchar otp_code
-        timestamp expires_at
-        boolean is_used
-        timestamp created_at
-    }
-
-    detection_histories {
-        bigint id PK
-        bigint user_id FK
-        text image_url
-        text predicted_text
-        numeric confidence
-        varchar result_label
-        jsonb raw_response
-        timestamp created_at
-    }
-
-    translation_histories {
-        bigint id PK
-        bigint user_id FK
-        text image_url
-        text source_text
-        text translated_text
-        varchar source_language
-        varchar target_language
-        jsonb raw_response
-        timestamp created_at
-    }
-```
 
 ### Catatan Penting Mengenai Skema Alamat (`user_addresses`)
 Mengingat frontend saat ini hanya mengirimkan field alamat esensial yaitu `country`, `city`, dan `postalCode`, proses penyimpanan melalui model `upsertUserAddress` akan otomatis memasok nilai string kosong `""` ke kolom `street` dan `province` di database demi kelancaran integritas data tanpa merusak struktur migrasi awal.
