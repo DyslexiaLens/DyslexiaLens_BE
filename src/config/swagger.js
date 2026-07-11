@@ -22,7 +22,7 @@ const options = {
         description: "Local Development Server",
       },
       {
-        url: "https://api.dyslexialens.app/api/v1",
+        url: "https://dyslexia-lens-be.vercel.app/api/v1",
         description: "Production Server",
       },
     ],
